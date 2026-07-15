@@ -20,12 +20,73 @@
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen p-4 md:p-8 flex items-center justify-center">
 
-    <div class="max-w-2xl w-full bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-xl shadow-2xl">
+    <!-- ==========================================
+         SCREEN 1: FORM LOGIN
+         ========================================== -->
+    <div id="loginScreen" class="max-w-md w-full bg-zinc-900 border border-zinc-800 p-8 rounded-xl shadow-2xl">
+        <div class="border-b border-zinc-800 pb-4 mb-6 text-center">
+            <h1 class="text-2xl font-black tracking-wider text-amber-500">Q.CO PORTAL</h1>
+            <p class="text-xs text-zinc-400 mt-1">Silakan masuk menggunakan akun Sales / Admin Anda.</p>
+        </div>
+        <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Email *</label>
+                <input type="email" id="login_email" required placeholder="reza@qco.co"
+                       class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Password *</label>
+                <input type="password" id="login_password" required placeholder="Masukkan password default"
+                       class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+            </div>
+            <button type="submit" id="btnLogin"
+                    class="w-full bg-amber-600 hover:bg-amber-500 text-zinc-950 font-bold uppercase tracking-wider py-3 rounded transition duration-150">
+                Masuk
+            </button>
+        </form>
+    </div>
+
+    <!-- ==========================================
+         MODAL POPUP: PAKSA GANTI PASSWORD DEFAULT
+         ========================================== -->
+    <div id="resetPasswordModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="max-w-sm w-full bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-2xl">
+            <h2 class="text-lg font-black text-amber-500 uppercase tracking-wider mb-2">Ganti Password Default</h2>
+            <p class="text-xs text-zinc-400 mb-4">Demi keamanan, Anda wajib mengganti password default pertama kali sebelum melanjutkan.</p>
+            
+            <form id="resetForm" onsubmit="handleResetSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Password Baru *</label>
+                    <input type="password" id="new_password" required minlength="6" placeholder="Minimal 6 karakter"
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Konfirmasi Password Baru *</label>
+                    <input type="password" id="confirm_password" required minlength="6" placeholder="Ulangi password baru"
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                </div>
+                <button type="submit" id="btnReset"
+                        class="w-full bg-emerald-600 hover:bg-emerald-500 text-zinc-950 font-bold uppercase tracking-wider py-3 rounded transition duration-150">
+                    Simpan & Lanjutkan
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         SCREEN 2: FORM ENTRY UTAMA
+         ========================================== -->
+    <div id="mainApp" class="max-w-2xl w-full bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-xl shadow-2xl hidden">
         
         <!-- Header -->
-        <div class="border-b border-zinc-800 pb-4 mb-6">
-            <h1 class="text-xl font-black tracking-wider text-amber-500">Q.CO SALES ENTRY FORM</h1>
-            <p class="text-xs text-zinc-400 mt-1">Gunakan formulir ini untuk mencatat kunjungan canvassing lapangan.</p>
+        <div class="border-b border-zinc-800 pb-4 mb-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black tracking-wider text-amber-500">Q.CO SALES ENTRY FORM</h1>
+                <p class="text-xs text-zinc-400 mt-1">Gunakan formulir ini untuk mencatat kunjungan canvassing lapangan.</p>
+            </div>
+            <button onclick="handleLogout()" class="text-xs bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1 rounded transition">
+                Logout
+            </button>
         </div>
 
         <!-- Form Element -->
@@ -109,7 +170,7 @@
                     <input type="file" id="foto_menu" accept="image/*" onchange="processImageFile(event)"
                            class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-400 focus:outline-none focus:border-amber-500 text-sm">
                     <input type="hidden" id="foto_menu_base64" name="Foto Menu">
-                    <p class="text-[10px] text-zinc-500 mt-1">Unggah berkas gambar menu atau foto langsung dari kamera smartphone.</p>
+                    <p class="text-[10px] text-zinc-500 mt-1">Unggah berkas gambar menu atau foto langsung dari kamera.</p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -238,9 +299,15 @@
         </form>
     </div>
 
+    <!-- ==========================================
+         JAVASCRIPT CODE
+         ========================================== -->
     <script>
+        // MASUKKAN URL DEPLOY WEB APP APPS SCRIPT ANDA DI SINI
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNuh-E6Lutp5jC5_25YAvF2e_4fk2O7AzdbU_Sa3CSOFs2SmhhzC5urEgvsQt7hAQ/exec";
+        
         let rawDatabase = [];
+        let currentUser = null;
 
         window.addEventListener("DOMContentLoaded", () => {
             const today = new Date().toISOString().split('T')[0];
@@ -251,7 +318,6 @@
             document.getElementById("checkin_field").value = new Date().toLocaleString('id-ID');
 
             getLocation();
-            loadPreExistingLeads();
         });
 
         function generateUniqueID() {
@@ -270,38 +336,130 @@
             }
         }
 
-        // AMBIL DATA REAL-TIME TANPA MEMBAWA BARIS KOSONG (OPTIMISASI KECEPATAN TINGGI)
+        // ==========================================
+        // FUNGSI AUTH LOGIN & LOGOUT (HTML)
+        // ==========================================
+        async function handleLoginSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById("btnLogin");
+            const email = document.getElementById("login_email").value;
+            const password = document.getElementById("login_password").value;
+
+            btn.disabled = true;
+            btn.innerText = "Memverifikasi...";
+
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    currentUser = result; 
+                    
+                    if (result.firstLogin) {
+                        document.getElementById("resetPasswordModal").classList.remove("hidden");
+                    } else {
+                        enterMainApplication();
+                    }
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) {
+                console.error("Login gagal: ", e);
+                alert("Gagal terhubung ke server login.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Masuk";
+            }
+        }
+
+        async function handleResetSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById("btnReset");
+            const newPass = document.getElementById("new_password").value;
+            const confirmPass = document.getElementById("confirm_password").value;
+
+            if (newPass !== confirmPass) {
+                alert("Konfirmasi password tidak cocok!");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Menyimpan...";
+
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=resetPassword&email=${encodeURIComponent(currentUser.email)}&newPassword=${encodeURIComponent(newPass)}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    alert("Password berhasil diperbarui!");
+                    document.getElementById("resetPasswordModal").classList.add("hidden");
+                    enterMainApplication();
+                } else {
+                    alert(result.message);
+                }
+            } catch (e) {
+                alert("Gagal mengganti password.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Simpan & Lanjutkan";
+            }
+        }
+
+        function enterMainApplication() {
+            document.getElementById("loginScreen").classList.add("hidden");
+            document.getElementById("mainApp").classList.remove("hidden");
+            
+            const salesSelect = document.getElementById("sales");
+            salesSelect.value = currentUser.name;
+            
+            // Kunci sales agar tidak bisa input atas nama sales lain, kecuali Admin
+            if (currentUser.role !== "Admin") {
+                salesSelect.disabled = true;
+            } else {
+                salesSelect.disabled = false;
+            }
+            
+            loadPreExistingLeads();
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            rawDatabase = [];
+            document.getElementById("loginForm").reset();
+            document.getElementById("salesForm").reset();
+            document.getElementById("mainApp").classList.add("hidden");
+            document.getElementById("loginScreen").classList.remove("hidden");
+        }
+
+        // ==========================================
+        // AMBIL DATA & PENYARINGAN RELASIONAL KOPI (HTML)
+        // ==========================================
         async function loadPreExistingLeads() {
             try {
                 const selectShop = document.getElementById("coffee_shop_select");
-                selectShop.innerHTML = `<option value="">-- Mengambil Data Dari Database... --</option>`;
+                selectShop.innerHTML = `<option value="">-- Memuat Database... --</option>`;
 
                 const fetchUrl = `${WEB_APP_URL}?_t=${new Date().getTime()}`;
-                const res = await fetch(fetchUrl, { 
-                    method: "GET",
-                    headers: { "Accept": "application/json" }
-                });
+                const res = await fetch(fetchUrl);
                 
                 if (res.ok) {
                     const fullData = await res.json();
                     
-                    // Saring baris yang benar-benar kosong semenjak ditarik (Bypass masalah baris 50000 agar loading instan)
+                    // Filter baris kosong langsung pada frontend demi loading instan
                     rawDatabase = fullData.filter(row => {
                         const shop = (row["Nama Coffee Shop"] || row["nama_coffee_shop"] || "").toString().trim();
                         const sales = (row["Sales"] || row["sales"] || "").toString().trim();
                         return shop !== "" && sales !== "";
                     });
 
-                    console.log("Database Sukses Dimuat. Baris Aktif Terbaca:", rawDatabase.length);
                     handleSalesOrVisitChange(); 
                 }
             } catch (e) {
-                console.error("Gagal sinkronisasi data GSheet: ", e);
-                document.getElementById("coffee_shop_select").innerHTML = `<option value="">-- Gagal Sinkron (Muat Ulang Halaman) --</option>`;
+                console.error("Gagal memuat database: ", e);
+                document.getElementById("coffee_shop_select").innerHTML = `<option value="">-- Gagal Sinkron (Reload Halaman) --</option>`;
             }
         }
 
-        // LOGIKA PENYARINGAN KUNJUNGAN RELASIONAL AKURAT (LOGIKA HIMPUNAN)
         function handleSalesOrVisitChange() {
             const salesVal = document.getElementById("sales").value;
             const visitVal = document.getElementById("visit_ke").value;
@@ -322,15 +480,13 @@
             }
 
             if (salesVal && rawDatabase.length > 0) {
-                // Struktur penampung riwayat per toko khusus untuk sales yang dipilih
                 const history = {};
 
-                // Loop 1: Petakan status kunjungan (Pertama, Kedua, Ketiga) & Status Closing Terakhir
+                // Loop 1: Petakan riwayat kunjungan & status closing terakhir dari sales terkait
                 for (let i = 0; i < rawDatabase.length; i++) {
                     const row = rawDatabase[i];
                     const dbSales = (row["Sales"] || row["sales"] || "").toString().trim().toLowerCase();
                     
-                    // Hanya proses baris yang diinput oleh sales terpilih
                     if (dbSales !== salesVal.toLowerCase()) continue;
 
                     const shopName = (row["Nama Coffee Shop"] || row["nama_coffee_shop"] || "").toString().trim();
@@ -348,12 +504,10 @@
                         };
                     }
 
-                    // Petakan riwayat kunjungan yang pernah terjadi
                     if (visitType === "pertama") history[shopName].hasPertama = true;
                     if (visitType === "kedua") history[shopName].hasKedua = true;
                     if (visitType === "ketiga") history[shopName].hasKetiga = true;
 
-                    // Simpan status closing yang paling akhir ditemui di database
                     if (closingStatus !== "") {
                         history[shopName].lastClosingStatus = closingStatus;
                     }
@@ -361,33 +515,28 @@
 
                 const validShops = [];
 
-                // Loop 2: Terapkan Aturan Himpunan yang Anda Inginkan
+                // Loop 2: Terapkan aturan relasi logis
                 for (const [shopName, info] of Object.entries(history)) {
                     
-                    // Semua target kunjungan lanjutan WAJIB berstatus terakhir "On Going"
                     if (info.lastClosingStatus !== "on going") continue;
 
                     if (visitVal === "Kedua") {
-                        // Kriteria Visit 2: Pernah Pertama, tapi BELUM PERNAH Kedua & Ketiga
                         if (info.hasPertama && !info.hasKedua && !info.hasKetiga) {
                             validShops.push(shopName);
                         }
                     } 
                     else if (visitVal === "Ketiga") {
-                        // Kriteria Visit 3: Pernah Pertama DAN Kedua, tapi BELUM PERNAH Ketiga
                         if (info.hasPertama && info.hasKedua && !info.hasKetiga) {
                             validShops.push(shopName);
                         }
                     }
                     else if (visitVal === "Maksimal 3 kali Visit") {
-                        // Sudah mentok 3 kali kunjungan
                         if (info.hasKetiga) {
                             validShops.push(shopName);
                         }
                     }
                 }
 
-                // Urutkan alfabetis & masukkan ke elemen dropdown select
                 validShops.sort().forEach(shop => {
                     const opt = document.createElement("option");
                     opt.value = shop;
@@ -513,6 +662,9 @@
             }
         }
 
+        // ==========================================
+        // SUBMIT LAPORAN (HTML)
+        // ==========================================
         async function handleSubmit(event) {
             event.preventDefault();
             const btn = document.getElementById("btnSubmit");
@@ -520,30 +672,51 @@
             btn.innerText = "Mengirim data...";
 
             const form = document.getElementById("salesForm");
+            
+            // Re-enable sales field agar nilainya ikut terkirim ke backend
+            const salesSelect = document.getElementById("sales");
+            salesSelect.disabled = false;
+
             const formData = new FormData(form);
             const dataObject = {};
             formData.forEach((value, key) => { dataObject[key] = value; });
 
+            // Kembalikan status disabled jika bukan Admin setelah data didapat
+            if (currentUser.role !== "Admin") {
+                salesSelect.disabled = true;
+            }
+
             try {
-                await fetch(WEB_APP_URL, {
+                const response = await fetch(WEB_APP_URL, {
                     method: "POST",
-                    mode: "no-cors", 
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "text/plain" }, // Bypass CORS preflight
                     body: JSON.stringify(dataObject)
                 });
 
-                alert("Laporan Kunjungan Berhasil Terkirim!");
-                form.reset();
-                
-                document.getElementById("id_field").value = generateUniqueID();
-                document.getElementById("checkin_field").value = new Date().toLocaleString('id-ID');
-                getLocation();
-                
-                handleSalesOrVisitChange();
-                toggleSamplingField();
-                toggleClosingFields();
-                
-                setTimeout(loadPreExistingLeads, 1000);
+                const result = await response.json();
+
+                if (result.success) {
+                    alert("Laporan Kunjungan Berhasil Terkirim!");
+                    
+                    // Reset form tapi pertahankan input sistem
+                    form.reset();
+                    
+                    document.getElementById("id_field").value = generateUniqueID();
+                    document.getElementById("checkin_field").value = new Date().toLocaleString('id-ID');
+                    getLocation();
+                    
+                    // Pertahankan sales yang sedang login
+                    salesSelect.value = currentUser.name;
+                    
+                    handleSalesOrVisitChange();
+                    toggleSamplingField();
+                    toggleClosingFields();
+                    
+                    // Muat ulang data terbaru di background
+                    setTimeout(loadPreExistingLeads, 1500);
+                } else {
+                    alert("Gagal menyimpan: " + result.message);
+                }
             } catch (error) {
                 console.error("Gagal mengirim data:", error);
                 alert("Terjadi kesalahan saat mengirim data.");
