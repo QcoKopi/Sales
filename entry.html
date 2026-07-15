@@ -380,21 +380,17 @@
         </div>
     </div>
 
-   <!-- Modal Profile yang sudah dioptimasi desainnya -->
-<div id="modalProfileSales" class="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 hidden">
+   <div id="modalProfileSales" class="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50 hidden">
     <div class="max-w-sm w-full bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-2xl relative overflow-hidden">
-        <!-- Dekorasi Background -->
         <div class="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl"></div>
         
         <span onclick="tutupModalProfile()" class="absolute top-4 right-4 text-zinc-500 hover:text-white cursor-pointer font-bold text-lg">&times;</span>
         
-        <!-- Header -->
         <div class="text-center mb-6">
             <h2 class="text-[10px] font-black tracking-[0.2em] text-zinc-500 uppercase">Q.co Coffee Lab</h2>
             <h1 class="text-lg font-black text-amber-500 uppercase tracking-widest mt-1">Official Sales Profile</h1>
         </div>
 
-        <!-- Kartu Nama Digital -->
         <div class="bg-gradient-to-br from-zinc-950 to-zinc-900 p-5 rounded-xl border border-zinc-800 shadow-inner mb-6">
             <div class="flex items-center gap-4">
                 <div class="w-16 h-16 rounded-full border border-zinc-700 bg-zinc-800 overflow-hidden flex items-center justify-center shadow-lg">
@@ -407,7 +403,6 @@
                 </div>
             </div>
             
-            <!-- QR Code Area -->
             <div class="mt-6 flex flex-col items-center">
                 <div id="qrcode_local_box" class="p-2 bg-white rounded-lg"></div>
                 <p class="text-[9px] text-zinc-500 mt-3 uppercase tracking-widest">Scan to Connect via WhatsApp</p>
@@ -417,7 +412,6 @@
             </div>
         </div>
 
-        <!-- Tombol Aksi -->
         <button onclick="shareProfileToLead()" class="w-full bg-zinc-100 hover:bg-white text-zinc-950 font-black uppercase tracking-widest py-3 rounded-lg transition duration-200 text-xs">
             Bagikan Kontak ke Klien
         </button>
@@ -1055,9 +1049,6 @@
             }
         }
 
-        // ==========================================
-        // PROSES DIGITAL PROFILE & SHARE WA (STANDAR & VALID)
-        // ==========================================
         function formatUntukInternationalWA(nomorAsli) {
             let bersih = nomorAsli.replace(/\D/g, "");
             if (bersih.startsWith("0")) {
@@ -1075,7 +1066,6 @@
                 const base64Data = e.target.result;
                 const namaSales = currentUser.name;
                 
-                // Simpan foto di memori browser local storage
                 localStorage.setItem("qco_sales_photo_" + namaSales, base64Data);
                 
                 tampilkanFotoProfil(base64Data);
@@ -1111,11 +1101,9 @@
             if (initial === "") initial = "SL";
             document.getElementById("profile_avatar_fallback").innerText = initial.toUpperCase();
             
-            // Load foto profil dari Local Storage
             const storedPhoto = localStorage.getItem("qco_sales_photo_" + namaSales) || "";
             tampilkanFotoProfil(storedPhoto);
             
-            // Load Nomor WA dari Local Storage
             const localStoredWA = localStorage.getItem("qco_sales_wa_" + namaSales) || "";
             document.getElementById("profile_input_wa").value = localStoredWA;
             
@@ -1135,11 +1123,10 @@
             const anchor = document.getElementById("profile_link_anchor");
             const qrBox = document.getElementById("qrcode_local_box");
             
-            qrBox.innerHTML = ""; // Bersihkan QR Code lama
+            qrBox.innerHTML = ""; 
             
             if (nomorWA !== "") {
                 localStorage.setItem("qco_sales_wa_" + namaSales, nomorWA);
-                displaySpan.innerText = nomorWA;
                 
                 const formatWA = formatUntukInternationalWA(nomorWA);
                 const fullWaLink = `https://wa.me/${formatWA}`;
@@ -1147,7 +1134,6 @@
                 anchor.href = fullWaLink;
                 anchor.innerText = `wa.me/${formatWA}`;
                 
-                // Menghasilkan QR Code secara offline / lokal tanpa hit API eksternal
                 new QRCode(qrBox, {
                     text: fullWaLink,
                     width: 128,
@@ -1157,7 +1143,6 @@
                     correctLevel : QRCode.CorrectLevel.H
                 });
             } else {
-                displaySpan.innerText = "Belum disetel";
                 anchor.href = "#";
                 anchor.innerText = "Nomor WA kosong";
                 qrBox.innerHTML = "<span class='text-zinc-600 text-xs text-center font-mono'>QR Kosong</span>";
