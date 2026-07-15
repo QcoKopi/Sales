@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q.co Coffee Lab - Sales Entry Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        zinc: { 850: '#202024' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen p-4 md:p-8 flex items-center justify-center">
+
+    <div class="max-w-2xl w-full bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-xl shadow-2xl">
+        
+        <!-- Header -->
+        <div class="border-b border-zinc-800 pb-4 mb-6">
+            <h1 class="text-xl font-black tracking-wider text-amber-500">Q.CO SALES ENTRY FORM</h1>
+            <p class="text-xs text-zinc-400 mt-1">Gunakan formulir ini untuk mencatat kunjungan canvassing lapangan.</p>
+        </div>
+
+        <!-- Form Element -->
+        <form id="salesForm" class="space-y-5" onsubmit="handleSubmit(event)">
+            
+            <!-- Hidden Fields (System Generated) -->
+            <input type="hidden" id="id_field" name="ID">
+            <input type="hidden" id="gps_field" name="GPS Loc">
+            <input type="hidden" id="checkin_field" name="Waktu Check In">
+
+            <!-- Row 1: Tanggal & Sales -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Tanggal Kunjungan *</label>
+                    <input type="date" id="tanggal" name="Tanggal" required 
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Nama Sales *</label>
+                    <select id="sales" name="Sales" required onchange="handleSalesChange()"
+                            class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                        <option value="">-- Pilih Sales --</option>
+                        <option value="Alby">Alby</option>
+                        <option value="Herza">Herza</option>
+                        <option value="Zeni">Zeni</option>
+                        <option value="Putra">Putra</option>
+                        <option value="Reza">Reza</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 2: Visit Ke -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Kunjungan (Visit Ke) *</label>
+                <select id="visit_ke" name="Visit Ke" required onchange="toggleConditionalFields()"
+                        class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                    <option value="Pertama">Pertama (Data Baru)</option>
+                    <option value="Kedua">Kedua</option>
+                    <option value="Ketiga">Ketiga</option>
+                    <option value="Maksimal 3 kali Visit">Maksimal 3 kali Visit</option>
+                </select>
+            </div>
+
+            <!-- Row 3: Nama Coffee Shop -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Nama Coffee Shop *</label>
+                <div class="space-y-2">
+                    <select id="coffee_shop_select" onchange="handleShopSelection()"
+                            class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                        <option value="">-- Pilih Coffee Shop --</option>
+                        <option value="NEW">-- + Toko Baru (Input Manual) --</option>
+                    </select>
+                    <input type="text" id="coffee_shop_text" name="Nama Coffee Shop" placeholder="Masukkan nama Coffee Shop baru" required
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 hidden">
+                </div>
+            </div>
+
+            <!-- CONDITIONAL SECTION: Hanya untuk Visit Pertama -->
+            <div id="visit_pertama_section" class="space-y-5 border-l-2 border-amber-500/30 pl-4 py-2 my-2">
+                <h3 class="text-sm font-extrabold text-amber-500 uppercase tracking-wider">Detail Kunjungan Pertama</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Area / Wilayah</label>
+                        <input type="text" id="area" name="Area" placeholder="Contoh: Depok Margonda"
+                               class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Estimasi Kapasitas (Jumlah Kursi)</label>
+                        <select id="jumlah_kursi" name="Jumlah Kursi"
+                                class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                            <option value="">-- Pilih Estimasi Kursi --</option>
+                            <option value="> 10">&gt; 10 Kursi</option>
+                            <option value="5 - 10">5 - 10 Kursi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Nama PIC Toko</label>
+                        <input type="text" id="nama_pic" name="Nama PIC" placeholder="Nama Barista / Owner"
+                               class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">No. Telp PIC</label>
+                        <input type="tel" id="telp_pic" name="Telp PIC" placeholder="08xxxxxxxxxx"
+                               class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 font-mono">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Bahan Baku Espresso Utama</label>
+                        <select id="bahan_espresso" name="Bahan Espresso" onchange="toggleBahanLainnya()"
+                                class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                            <option value="">-- Pilih Jenis Bahan --</option>
+                            <option value="100% Arabica (1 Jenis)">100% Arabica (1 Jenis)</option>
+                            <option value="100% Robusta (1 Jenis)">100% Robusta (1 Jenis)</option>
+                            <option value="Houseblend Arabica">Houseblend Arabica</option>
+                            <option value="Houseblend Robusta">Houseblend Robusta</option>
+                            <option value="Houseblend Arabica - Robusta">Houseblend Arabica - Robusta</option>
+                            <option value="Lainnya">Lainnya (Tulis Manual)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Total Kebutuhan Kopi / Bulan</label>
+                        <select id="total_kopi" name="Total Penggunaan Kopi per bulan"
+                                class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                            <option value="">-- Pilih Estimasi Kg --</option>
+                            <option value="1 Kg - 5kg">1 Kg - 5kg</option>
+                            <option value="5kg - 10kg">5kg - 10kg</option>
+                            <option value="10Kg - 20Kg">10Kg - 20Kg</option>
+                            <option value="20kg - 30Kg">20kg - 30Kg</option>
+                            <option value="30kg - 50kg">30kg - 50kg</option>
+                            <option value="50kg - 60kg">50kg - 60kg</option>
+                            <option value="60kg - 80kg">60kg - 80kg</option>
+                            <option value="80kg - 100kg">80kg - 100kg</option>
+                            <option value=">100kg">&gt; 100kg</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Input Bahan Espresso Lainnya -->
+                <div id="bahan_lainnya_wrapper" class="hidden">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Sebutkan Bahan Espresso Lainnya</label>
+                    <input type="text" id="bahan_espresso_lainnya" name="Bahan Espresso Lainnya" placeholder="Masukkan jenis bahan espresso"
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+
+            <!-- CONDITIONAL: Alasan Visit Ke-2 & Ke-3 -->
+            <div id="alasan_visit_2_wrapper" class="hidden">
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Alasan Visit Ke-2 *</label>
+                <textarea id="alasan_visit_2" name="Alasan visit ke 2" rows="2" placeholder="Sebutkan kendala atau agenda pertemuan kedua"
+                          class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
+            </div>
+
+            <div id="alasan_visit_3_wrapper" class="hidden">
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Alasan Visit Ke-3 *</label>
+                <textarea id="alasan_visit_3" name="Alasan Visit ke 3" rows="2" placeholder="Sebutkan kendala atau agenda pertemuan ketiga"
+                          class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
+            </div>
+
+            <!-- Sampling Section -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Kirim / Beri Sample? *</label>
+                    <select id="sampling" name="Sampling" required onchange="toggleSamplingField()"
+                            class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                        <option value="Tidak">Tidak</option>
+                        <option value="Ya">Ya</option>
+                    </select>
+                </div>
+                <div id="jenis_sample_wrapper" class="hidden">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Jenis Sample Yang Diberikan *</label>
+                    <input type="text" id="jenis_sample" name="Jenis Sample" placeholder="Contoh: Gayo Arabica, Toraja Blend"
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+
+            <!-- Closing Status Section -->
+            <div class="border-t border-zinc-800 pt-4">
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Progres / Status Closing *</label>
+                <select id="closing" name="Closing" required onchange="toggleClosingFields()"
+                        class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                    <option value="On Going">On Going (Masih proses prospek)</option>
+                    <option value="Ya">Ya (Berhasil Deal / Closing)</option>
+                    <option value="Stop">Stop (Gagal / Tidak Lanjut)</option>
+                </select>
+            </div>
+
+            <!-- CONDITIONAL: Closing Data (Jumlah & Harga) -->
+            <div id="closing_data_wrapper" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 border-l-2 border-emerald-500/30 pl-4 py-1">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Jumlah Pembelian (kg) *</label>
+                    <input type="number" id="jumlah" name="Jumlah" placeholder="0"
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Harga per kg (Rp) *</label>
+                    <input type="number" id="harga" name="Harga" placeholder="0"
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+
+            <!-- Keterangan Tambahan -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Keterangan / Catatan Tambahan</label>
+                <textarea name="Keterangan tambahan" rows="3" placeholder="Tuliskan catatan negosiasi penting di sini..."
+                          class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-4">
+                <button type="submit" id="btnSubmit"
+                        class="w-full bg-amber-600 hover:bg-amber-500 text-zinc-950 font-bold uppercase tracking-wider py-3 rounded-lg transition duration-150">
+                    Kirim Laporan Kunjungan
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Script Logika Client-Side -->
+    <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNuh-E6Lutp5jC5_25YAvF2e_4fk2O7AzdbU_Sa3CSOFs2SmhhzC5urEgvsQt7hAQ/exec";
+        let rawDatabase = [];
+
+        // Inisialisasi Otomatis Saat Buka Form
+        window.addEventListener("DOMContentLoaded", () => {
+            // Set Tanggal Hari Ini & Batasi maksimal hari ini
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById("tanggal").value = today;
+            document.getElementById("tanggal").max = today;
+
+            // Generate UUID untuk baris entri ini
+            document.getElementById("id_field").value = generateUniqueID();
+
+            // Ambil Waktu Check-In Sekarang
+            document.getElementById("checkin_field").value = new Date().toLocaleString('id-ID');
+
+            // Ambil GPS Lokasi Sales
+            getLocation();
+
+            // Muat Data Pembanding untuk Filter Prospek Terdaftar
+            loadPreExistingLeads();
+        });
+
+        // 1. Fungsi Pembuat ID Unik
+        function generateUniqueID() {
+            return 'qco_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // 2. Fungsi Deteksi Lokasi GPS
+        function getLocation() {
+            const gpsField = document.getElementById("gps_field");
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        gpsField.value = `${position.coords.latitude}, ${position.coords.longitude}`;
+                    },
+                    (error) => {
+                        console.warn("Gagal mengambil GPS Lokasi: ", error.message);
+                        gpsField.value = "GPS Dimatikan";
+                    }
+                );
+            } else {
+                gpsField.value = "Tidak didukung browser";
+            }
+        }
+
+        // 3. Mengambil database berjalan untuk penyaringan dynamic Coffee Shop
+        async function loadPreExistingLeads() {
+            try {
+                const res = await fetch(WEB_APP_URL, { method: "GET", redirect: "follow" });
+                if (res.ok) {
+                    rawDatabase = await res.json();
+                }
+            } catch (e) {
+                console.error("Gagal mengambil dataset referensi filter: ", e);
+            }
+        }
+
+        // 4. Logika Perubahan Pilihan Sales (Dynamic Dropdown Filter)
+        function handleSalesChange() {
+            const salesVal = document.getElementById("sales").value;
+            const selectShop = document.getElementById("coffee_shop_select");
+            
+            // Bersihkan dropdown kecuali opsi default
+            selectShop.innerHTML = `
+                <option value="">-- Pilih Coffee Shop --</option>
+                <option value="NEW">-- + Toko Baru (Input Manual) --</option>
+            `;
+
+            if (salesVal && rawDatabase.length > 0) {
+                // Cari coffee shop unik yang pernah ditangani sales ini
+                const filteredShops = [...new Set(
+                    rawDatabase
+                        .filter(item => item["Sales"] === salesVal && item["Nama Coffee Shop"])
+                        .map(item => item["Nama Coffee Shop"].trim())
+                )];
+
+                filteredShops.sort().forEach(shop => {
+                    const opt = document.createElement("option");
+                    opt.value = shop;
+                    opt.innerText = shop;
+                    selectShop.appendChild(opt);
+                });
+            }
+            handleShopSelection();
+        }
+
+        // 5. Logika jika memilih Toko Baru (Teks Input) vs Toko Lama (Dropdown)
+        function handleShopSelection() {
+            const selectShop = document.getElementById("coffee_shop_select");
+            const textShop = document.getElementById("coffee_shop_text");
+            
+            if (selectShop.value === "NEW" || selectShop.value === "") {
+                textShop.classList.remove("hidden");
+                textShop.required = true;
+                if (selectShop.value === "NEW") {
+                    textShop.value = "";
+                }
+            } else {
+                textShop.classList.add("hidden");
+                textShop.required = false;
+                textShop.value = selectShop.value;
+            }
+        }
+
+        // 6. Logika Dinamis Conditional Form (Show/Hide Berdasarkan Kunjungan)
+        function toggleConditionalFields() {
+            const visit = document.getElementById("visit_ke").value;
+            const firstSection = document.getElementById("visit_pertama_section");
+            const alasan2 = document.getElementById("alasan_visit_2_wrapper");
+            const alasan3 = document.getElementById("alasan_visit_3_wrapper");
+
+            // Tampilkan isian detail toko jika kunjungan pertama
+            if (visit === "Pertama") {
+                firstSection.classList.remove("hidden");
+                alasan2.classList.add("hidden");
+                document.getElementById("alasan_visit_2").required = false;
+                alasan3.classList.add("hidden");
+                document.getElementById("alasan_visit_3").required = false;
+            } else {
+                firstSection.classList.add("hidden");
+                
+                // Urusan Alasan Visit
+                if (visit === "Kedua") {
+                    alasan2.classList.remove("hidden");
+                    document.getElementById("alasan_visit_2").required = true;
+                    alasan3.classList.add("hidden");
+                    document.getElementById("alasan_visit_3").required = false;
+                } else if (visit === "Ketiga") {
+                    alasan2.classList.add("hidden");
+                    document.getElementById("alasan_visit_2").required = false;
+                    alasan3.classList.remove("hidden");
+                    document.getElementById("alasan_visit_3").required = true;
+                } else {
+                    alasan2.classList.add("hidden");
+                    alasan3.classList.add("hidden");
+                    document.getElementById("alasan_visit_2").required = false;
+                    document.getElementById("alasan_visit_3").required = false;
+                }
+            }
+        }
+
+        // 7. Logika Sampling
+        function toggleSamplingField() {
+            const samplingVal = document.getElementById("sampling").value;
+            const wrapper = document.getElementById("jenis_sample_wrapper");
+            const input = document.getElementById("jenis_sample");
+
+            if (samplingVal === "Ya") {
+                wrapper.classList.remove("hidden");
+                input.required = true;
+            } else {
+                wrapper.classList.add("hidden");
+                input.required = false;
+                input.value = "";
+            }
+        }
+
+        // 8. Logika Bahan Espresso Lainnya
+        function toggleBahanLainnya() {
+            const bahan = document.getElementById("bahan_espresso").value;
+            const wrapper = document.getElementById("bahan_lainnya_wrapper");
+            const input = document.getElementById("bahan_espresso_lainnya");
+
+            if (bahan === "Lainnya") {
+                wrapper.classList.remove("hidden");
+                input.required = true;
+            } else {
+                wrapper.classList.add("hidden");
+                input.required = false;
+                input.value = "";
+            }
+        }
+
+        // 9. Logika Closing Data (Jumlah & Harga)
+        function toggleClosingFields() {
+            const closingVal = document.getElementById("closing").value;
+            const wrapper = document.getElementById("closing_data_wrapper");
+            const jumlah = document.getElementById("jumlah");
+            const harga = document.getElementById("harga");
+
+            if (closingVal === "Ya") {
+                wrapper.classList.remove("hidden");
+                jumlah.required = true;
+                harga.required = true;
+            } else {
+                wrapper.classList.add("hidden");
+                jumlah.required = false;
+                harga.required = false;
+                jumlah.value = "";
+                harga.value = "";
+            }
+        }
+
+        // 10. Pengiriman Data Form ke Google Sheets via GAS Post
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById("btnSubmit");
+            btn.disabled = true;
+            btn.innerText = "Mengirim data...";
+
+            const form = document.getElementById("salesForm");
+            const formData = new FormData(form);
+            
+            // Konversi FormData ke JSON Object
+            const dataObject = {};
+            formData.forEach((value, key) => {
+                dataObject[key] = value;
+            });
+
+            try {
+                // Mengirimkan POST ke Web App Google Apps Script
+                const response = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors", // Mode no-cors agar pengiriman lintas domain berhasil tanpa hambatan
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(dataObject)
+                });
+
+                // Dikarenakan menggunakan mode 'no-cors', kita mengasumsikan data berhasil jika tidak masuk ke blok catch
+                alert("Laporan Kunjungan Berhasil Terkirim!");
+                form.reset();
+                
+                // Regenerate ID Baru & Waktu Baru untuk input berikutnya
+                document.getElementById("id_field").value = generateUniqueID();
+                document.getElementById("checkin_field").value = new Date().toLocaleString('id-ID');
+                getLocation();
+                toggleConditionalFields();
+                toggleSamplingField();
+                toggleClosingFields();
+                
+            } catch (error) {
+                console.error("Gagal mengirim data:", error);
+                alert("Terjadi kesalahan sistem saat mengirim data. Silakan coba lagi.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Kirim Laporan Kunjungan";
+            }
+        }
+    </script>
+</body>
+</html>
