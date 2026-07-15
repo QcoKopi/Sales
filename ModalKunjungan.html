@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; }
+    select, input, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .hidden { display: none; }
+    button { background-color: #1a1a1a; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+    button:hover { background-color: #333333; }
+  </style>
+</head>
+<body>
+
+  <h3>Form Kunjungan Terjadwal</h3>
+  
+  <div class="form-group">
+    <label>Salesman</label>
+    <select id="salesman" onchange="updateDaftarToko()">
+      <option value="">-- Pilih Sales --</option>
+      <option value="Rian">Rian</option>
+      <option value="Budi">Budi</option>
+      <option value="Siti">Siti</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Nama Toko</label>
+    <select id="namaToko" disabled>
+      <option value="">-- Pilih Sales Lebih Dulu --</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Tanggal Kunjungan</label>
+    <input type="date" id="tanggalKunjungan">
+  </div>
+
+  <div class="form-group">
+    <label>Keperluan Kunjungan</label>
+    <select id="keperluan" onchange="toggleKeperluanLainnya()">
+      <option value="Meeting saja">Meeting saja</option>
+      <option value="Meeting dan Demo">Meeting dan Demo</option>
+      <option value="Lainnya">Lainnya (Sebutkan)</option>
+    </select>
+  </div>
+
+  <div class="form-group hidden" id="boxKeperluanLainnya">
+    <label>Sebutkan Keperluan Lainnya</label>
+    <input type="text" id="keperluanLainnyaDetail" placeholder="Contoh: Maintenance Mesin">
+  </div>
+
+  <div class="form-group">
+    <label>Hasil Kunjungan (Catatan)</label>
+    <textarea id="hasilKunjungan" rows="4" placeholder="Tulis hasil kunjungan di sini..."></textarea>
+  </div>
+
+  <button onclick="prosesSimpanData()">Simpan Kunjungan</button>
+
+  <script>
+    function updateDaftarToko() {
+      var salesSelected = document.getElementById("salesman").value
+      var dropdownToko = document.getElementById("namaToko")
+      
+      if (!salesSelected) {
+        dropdownToko.innerHTML = "<option>-- Pilih Sales Lebih Dulu --</option>"
+        dropdownToko.disabled = true
+        return
+      }
+      
+      dropdownToko.disabled = true
+      dropdownToko.innerHTML = "<option>Memuat toko...</option>"
+      
+      google.script.run.withSuccessHandler(function(listToko) {
+        dropdownToko.innerHTML = ""
+        
+        if (listToko.length === 0) {
+          dropdownToko.innerHTML = "<option>Tidak ada toko untuk sales ini</option>"
+          return
+        }
+        
+        listToko.forEach(function(toko) {
+          var opt = document.createElement("option")
+          opt.value = toko
+          opt.textContent = toko
+          dropdownToko.appendChild(opt)
+        })
+        dropdownToko.disabled = false
+      }).dapatkanToko(salesSelected)
+    }
+
+    function toggleKeperluanLainnya() {
+      var keperluanVal = document.getElementById("keperluan").value
+      var boxLainnya = document.getElementById("boxKeperluanLainnya")
+      
+      if (keperluanVal === "Lainnya") {
+        boxLainnya.classList.remove("hidden")
+      } else {
+        boxLainnya.classList.add("hidden")
+      }
+    }
+
+    function prosesSimpanData() {
+      var keperluanFinal = document.getElementById("keperluan").value
+      if (keperluanFinal === "Lainnya") {
+        keperluanFinal = document.getElementById("keperluanLainnyaDetail").value
+      }
+      
+      var formPayload = {
+        salesman: document.getElementById("salesman").value,
+        namaToko: document.getElementById("namaToko").value,
+        tanggalKunjungan: document.getElementById("tanggalKunjungan").value,
+        keperluan: keperluanFinal,
+        hasilKunjungan: document.getElementById("hasilKunjungan").value
+      }
+      
+      google.script.run.withSuccessHandler(function(res) {
+        alert(res)
+        google.script.host.close()
+      }).simpanKunjungan(formPayload)
+    }
+  </script>
+</body>
+</html>
