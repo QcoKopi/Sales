@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Q.co Coffee Lab - Sales Entry Form</title>
+    <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -21,17 +22,21 @@
 
     <div class="max-w-2xl w-full bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-xl shadow-2xl">
         
+        <!-- Header -->
         <div class="border-b border-zinc-800 pb-4 mb-6">
             <h1 class="text-xl font-black tracking-wider text-amber-500">Q.CO SALES ENTRY FORM</h1>
             <p class="text-xs text-zinc-400 mt-1">Gunakan formulir ini untuk mencatat kunjungan canvassing lapangan.</p>
         </div>
 
+        <!-- Form Element -->
         <form id="salesForm" class="space-y-5" onsubmit="handleSubmit(event)">
             
+            <!-- Hidden Fields (System Generated) -->
             <input type="hidden" id="id_field" name="ID">
             <input type="hidden" id="gps_field" name="GPS Loc">
             <input type="hidden" id="checkin_field" name="Waktu Check In">
 
+            <!-- Row 1: Tanggal & Sales -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Tanggal Kunjungan *</label>
@@ -52,6 +57,7 @@
                 </div>
             </div>
 
+            <!-- Row 2: Visit Ke -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Kunjungan (Visit Ke) *</label>
                 <select id="visit_ke" name="Visit Ke" required onchange="handleSalesOrVisitChange()"
@@ -63,6 +69,7 @@
                 </select>
             </div>
 
+            <!-- Row 3: Nama Coffee Shop -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Nama Coffee Shop *</label>
                 <div class="space-y-2">
@@ -75,6 +82,7 @@
                 </div>
             </div>
 
+            <!-- CONDITIONAL SECTION: Hanya untuk Visit Pertama -->
             <div id="visit_pertama_section" class="space-y-5 border-l-2 border-amber-500/30 pl-4 py-2 my-2">
                 <h3 class="text-sm font-extrabold text-amber-500 uppercase tracking-wider">Detail Kunjungan Pertama</h3>
                 
@@ -95,6 +103,7 @@
                     </div>
                 </div>
 
+                <!-- Input File Upload Foto Menu -->
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Foto Menu Coffee Shop *</label>
                     <input type="file" id="foto_menu" accept="image/*" onchange="processImageFile(event)"
@@ -148,6 +157,7 @@
                     </div>
                 </div>
 
+                <!-- Input Bahan Espresso Lainnya -->
                 <div id="bahan_lainnya_wrapper" class="hidden">
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Sebutkan Bahan Espresso Lainnya *</label>
                     <input type="text" id="bahan_espresso_lainnya" name="Bahan Espresso Lainnya" placeholder="Masukkan jenis bahan espresso"
@@ -155,6 +165,7 @@
                 </div>
             </div>
 
+            <!-- CONDITIONAL: Alasan Visit Ke-2 & Ke-3 -->
             <div id="alasan_visit_2_wrapper" class="hidden">
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Alasan Visit Ke-2 *</label>
                 <textarea id="alasan_visit_2" name="Alasan visit ke 2" rows="2" placeholder="Sebutkan kendala atau agenda pertemuan kedua"
@@ -167,6 +178,7 @@
                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
             </div>
 
+            <!-- Sampling Section -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Kirim / Beri Sample? *</label>
@@ -183,6 +195,7 @@
                 </div>
             </div>
 
+            <!-- Progress / Status Closing -->
             <div class="border-t border-zinc-800 pt-4">
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Progres / Status Closing *</label>
                 <select id="closing" name="Closing" required onchange="toggleClosingFields()"
@@ -193,6 +206,7 @@
                 </select>
             </div>
 
+            <!-- CONDITIONAL: Closing Data -->
             <div id="closing_data_wrapper" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 border-l-2 border-emerald-500/30 pl-4 py-1">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Jumlah Pembelian (kg) *</label>
@@ -206,12 +220,14 @@
                 </div>
             </div>
 
+            <!-- Keterangan Tambahan -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Keterangan / Catatan Tambahan</label>
                 <textarea name="Keterangan tambahan" rows="3" placeholder="Tuliskan catatan negosiasi penting di sini..."
                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
             </div>
 
+            <!-- Submit Button -->
             <div class="pt-4">
                 <button type="submit" id="btnSubmit"
                         class="w-full bg-amber-600 hover:bg-amber-500 text-zinc-950 font-bold uppercase tracking-wider py-3 rounded-lg transition duration-150">
@@ -254,11 +270,11 @@
             }
         }
 
-        // AKSELERASI LOADING: Mengambil data real-time dengan bypass cache performa tinggi
+        // AMBIL DATA REAL-TIME TANPA MEMBAWA BARIS KOSONG (OPTIMISASI KECEPATAN TINGGI)
         async function loadPreExistingLeads() {
             try {
                 const selectShop = document.getElementById("coffee_shop_select");
-                selectShop.innerHTML = `<option value="">-- Mensinkronkan 60+ Data Prospek... --</option>`;
+                selectShop.innerHTML = `<option value="">-- Mengambil Data Dari Database... --</option>`;
 
                 const fetchUrl = `${WEB_APP_URL}?_t=${new Date().getTime()}`;
                 const res = await fetch(fetchUrl, { 
@@ -267,9 +283,17 @@
                 });
                 
                 if (res.ok) {
-                    rawDatabase = await res.json();
-                    console.log("Database Sukses Dimuat. Jumlah baris:", rawDatabase.length);
-                    handleSalesOrVisitChange(); // Eksekusi render instan
+                    const fullData = await res.json();
+                    
+                    // Saring baris yang benar-benar kosong semenjak ditarik (Bypass masalah baris 50000 agar loading instan)
+                    rawDatabase = fullData.filter(row => {
+                        const shop = (row["Nama Coffee Shop"] || row["nama_coffee_shop"] || "").toString().trim();
+                        const sales = (row["Sales"] || row["sales"] || "").toString().trim();
+                        return shop !== "" && sales !== "";
+                    });
+
+                    console.log("Database Sukses Dimuat. Baris Aktif Terbaca:", rawDatabase.length);
+                    handleSalesOrVisitChange(); 
                 }
             } catch (e) {
                 console.error("Gagal sinkronisasi data GSheet: ", e);
@@ -277,7 +301,7 @@
             }
         }
 
-        // PERBAIKAN TOTAL FILTER INDIKATOR KOLOM T ("CLOSING") DENGAN TOLERANSI SPASI
+        // LOGIKA PENYARINGAN KUNJUNGAN RELASIONAL AKURAT (LOGIKA HIMPUNAN)
         function handleSalesOrVisitChange() {
             const salesVal = document.getElementById("sales").value;
             const visitVal = document.getElementById("visit_ke").value;
@@ -286,7 +310,6 @@
             
             selectShop.innerHTML = `<option value="">-- Pilih Coffee Shop --</option>`;
 
-            // Opsi Tambah Toko Baru dikunci hanya untuk visit pertama
             if (visitVal === "Pertama") {
                 const optNew = document.createElement("option");
                 optNew.value = "NEW";
@@ -299,61 +322,72 @@
             }
 
             if (salesVal && rawDatabase.length > 0) {
-                const shopLastStatus = {};
+                // Struktur penampung riwayat per toko khusus untuk sales yang dipilih
+                const history = {};
 
-                // Pencarian super cepat menggunakan single loop indexing
+                // Loop 1: Petakan status kunjungan (Pertama, Kedua, Ketiga) & Status Closing Terakhir
                 for (let i = 0; i < rawDatabase.length; i++) {
                     const row = rawDatabase[i];
-                    
-                    // Baca properti secara fleksibel untuk mengantisipasi perbedaan key JSON dari GAS
                     const dbSales = (row["Sales"] || row["sales"] || "").toString().trim().toLowerCase();
+                    
+                    // Hanya proses baris yang diinput oleh sales terpilih
                     if (dbSales !== salesVal.toLowerCase()) continue;
 
                     const shopName = (row["Nama Coffee Shop"] || row["nama_coffee_shop"] || "").toString().trim();
-                    const currentVisit = (row["Visit Ke"] || row["visit_ke"] || "").toString().trim();
-                    
-                    // VALIDASI UTAMA: Deteksi nilai Closing (Kolom T) + Bersihkan spasi gaib
-                    const closingRaw = (row["Closing"] || row["closing"] || "on going").toString().trim().toLowerCase();
+                    const visitType = (row["Visit Ke"] || row["visit_ke"] || "").toString().trim().toLowerCase();
+                    const closingStatus = (row["Closing"] || row["closing"] || "on going").toString().trim().toLowerCase();
 
                     if (!shopName) continue;
 
-                    if (!shopLastStatus[shopName]) {
-                        shopLastStatus[shopName] = { maxVisit: 0, status: "on going" };
+                    if (!history[shopName]) {
+                        history[shopName] = {
+                            hasPertama: false,
+                            hasKedua: false,
+                            hasKetiga: false,
+                            lastClosingStatus: "on going"
+                        };
                     }
-                    
-                    let visitNum = 0;
-                    if (currentVisit === "Pertama") visitNum = 1;
-                    else if (currentVisit === "Kedua") visitNum = 2;
-                    else if (currentVisit === "Ketiga") visitNum = 3;
 
-                    if (visitNum >= shopLastStatus[shopName].maxVisit) {
-                        shopLastStatus[shopName].maxVisit = visitNum;
-                        shopLastStatus[shopName].status = closingRaw;
+                    // Petakan riwayat kunjungan yang pernah terjadi
+                    if (visitType === "pertama") history[shopName].hasPertama = true;
+                    if (visitType === "kedua") history[shopName].hasKedua = true;
+                    if (visitType === "ketiga") history[shopName].hasKetiga = true;
+
+                    // Simpan status closing yang paling akhir ditemui di database
+                    if (closingStatus !== "") {
+                        history[shopName].lastClosingStatus = closingStatus;
                     }
                 }
 
-                // Pengelompokan ulang data agar 61+ kedai kopi status 'on going' muncul utuh
                 const validShops = [];
-                for (const [shopName, info] of Object.entries(shopLastStatus)) {
-                    // JIKA STATUSNYA SUDAH 'STOP' ATAU 'CLOSING/CLOSE', MAKA DIISOLASI (TIDAK MUNCUL)
-                    if (info.status === "stop" || info.status === "closing" || info.status === "close") {
-                        continue;
-                    }
 
-                    // Toko yang berhak lanjut ke Visit Kedua (Lolos dari Visit Pertama dan status On Going)
-                    if (visitVal === "Kedua" && info.maxVisit === 1) {
-                        validShops.push(shopName);
+                // Loop 2: Terapkan Aturan Himpunan yang Anda Inginkan
+                for (const [shopName, info] of Object.entries(history)) {
+                    
+                    // Semua target kunjungan lanjutan WAJIB berstatus terakhir "On Going"
+                    if (info.lastClosingStatus !== "on going") continue;
+
+                    if (visitVal === "Kedua") {
+                        // Kriteria Visit 2: Pernah Pertama, tapi BELUM PERNAH Kedua & Ketiga
+                        if (info.hasPertama && !info.hasKedua && !info.hasKetiga) {
+                            validShops.push(shopName);
+                        }
+                    } 
+                    else if (visitVal === "Ketiga") {
+                        // Kriteria Visit 3: Pernah Pertama DAN Kedua, tapi BELUM PERNAH Ketiga
+                        if (info.hasPertama && info.hasKedua && !info.hasKetiga) {
+                            validShops.push(shopName);
+                        }
                     }
-                    // Toko yang berhak lanjut ke Visit Ketiga (Lolos dari Visit Kedua dan status On Going)
-                    else if (visitVal === "Ketiga" && info.maxVisit === 2) {
-                        validShops.push(shopName);
-                    }
-                    else if (visitVal === "Maksimal 3 kali Visit" && info.maxVisit === 3) {
-                        validShops.push(shopName);
+                    else if (visitVal === "Maksimal 3 kali Visit") {
+                        // Sudah mentok 3 kali kunjungan
+                        if (info.hasKetiga) {
+                            validShops.push(shopName);
+                        }
                     }
                 }
 
-                // Susun dropdown secara rapi sesuai abjad
+                // Urutkan alfabetis & masukkan ke elemen dropdown select
                 validShops.sort().forEach(shop => {
                     const opt = document.createElement("option");
                     opt.value = shop;
