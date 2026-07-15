@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Q.co Coffee Lab - Sales Entry Form</title>
+    <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -21,17 +22,21 @@
 
     <div class="max-w-2xl w-full bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-xl shadow-2xl">
         
+        <!-- Header -->
         <div class="border-b border-zinc-800 pb-4 mb-6">
             <h1 class="text-xl font-black tracking-wider text-amber-500">Q.CO SALES ENTRY FORM</h1>
             <p class="text-xs text-zinc-400 mt-1">Gunakan formulir ini untuk mencatat kunjungan canvassing lapangan.</p>
         </div>
 
+        <!-- Form Element -->
         <form id="salesForm" class="space-y-5" onsubmit="handleSubmit(event)">
             
+            <!-- Hidden Fields (System Generated) -->
             <input type="hidden" id="id_field" name="ID">
             <input type="hidden" id="gps_field" name="GPS Loc">
             <input type="hidden" id="checkin_field" name="Waktu Check In">
 
+            <!-- Row 1: Tanggal & Sales -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Tanggal Kunjungan *</label>
@@ -52,6 +57,7 @@
                 </div>
             </div>
 
+            <!-- Row 2: Visit Ke -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Kunjungan (Visit Ke) *</label>
                 <select id="visit_ke" name="Visit Ke" required onchange="handleSalesOrVisitChange()"
@@ -63,19 +69,21 @@
                 </select>
             </div>
 
+            <!-- Row 3: Nama Coffee Shop -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Nama Coffee Shop *</label>
                 <div class="space-y-2">
                     <select id="coffee_shop_select" onchange="handleShopSelection()" required
                             class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
                         <option value="">-- Pilih Coffee Shop --</option>
-                        <option value="NEW">-- + Toko Baru (Input Manual) --</option>
                     </select>
-                    <input type="text" id="coffee_shop_text" name="Nama Coffee Shop" placeholder="Masukkan nama Coffee Shop baru" required
+                    <!-- Input teks ini hanya akan muncul jika memilih "Toko Baru" pada Visit Pertama -->
+                    <input type="text" id="coffee_shop_text" name="Nama Coffee Shop" placeholder="Masukkan nama Coffee Shop baru"
                            class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 hidden">
                 </div>
             </div>
 
+            <!-- CONDITIONAL SECTION: Hanya untuk Visit Pertama -->
             <div id="visit_pertama_section" class="space-y-5 border-l-2 border-amber-500/30 pl-4 py-2 my-2">
                 <h3 class="text-sm font-extrabold text-amber-500 uppercase tracking-wider">Detail Kunjungan Pertama</h3>
                 
@@ -96,6 +104,7 @@
                     </div>
                 </div>
 
+                <!-- Input File Upload Foto Menu -->
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Foto Menu Coffee Shop *</label>
                     <input type="file" id="foto_menu" accept="image/*" onchange="processImageFile(event)"
@@ -149,6 +158,7 @@
                     </div>
                 </div>
 
+                <!-- Input Bahan Espresso Lainnya -->
                 <div id="bahan_lainnya_wrapper" class="hidden">
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Sebutkan Bahan Espresso Lainnya *</label>
                     <input type="text" id="bahan_espresso_lainnya" name="Bahan Espresso Lainnya" placeholder="Masukkan jenis bahan espresso"
@@ -156,6 +166,7 @@
                 </div>
             </div>
 
+            <!-- CONDITIONAL: Alasan Visit Ke-2 & Ke-3 -->
             <div id="alasan_visit_2_wrapper" class="hidden">
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Alasan Visit Ke-2 *</label>
                 <textarea id="alasan_visit_2" name="Alasan visit ke 2" rows="2" placeholder="Sebutkan kendala atau agenda pertemuan kedua"
@@ -168,6 +179,7 @@
                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
             </div>
 
+            <!-- Sampling Section -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Kirim / Beri Sample? *</label>
@@ -184,6 +196,7 @@
                 </div>
             </div>
 
+            <!-- Closing Status Section -->
             <div class="border-t border-zinc-800 pt-4">
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Progres / Status Closing *</label>
                 <select id="closing" name="Closing" required onchange="toggleClosingFields()"
@@ -194,6 +207,7 @@
                 </select>
             </div>
 
+            <!-- CONDITIONAL: Closing Data (Jumlah & Harga) -->
             <div id="closing_data_wrapper" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 border-l-2 border-emerald-500/30 pl-4 py-1">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Jumlah Pembelian (kg) *</label>
@@ -207,12 +221,14 @@
                 </div>
             </div>
 
+            <!-- Keterangan Tambahan -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Keterangan / Catatan Tambahan</label>
                 <textarea name="Keterangan tambahan" rows="3" placeholder="Tuliskan catatan negosiasi penting di sini..."
                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
             </div>
 
+            <!-- Submit Button -->
             <div class="pt-4">
                 <button type="submit" id="btnSubmit"
                         class="w-full bg-amber-600 hover:bg-amber-500 text-zinc-950 font-bold uppercase tracking-wider py-3 rounded-lg transition duration-150">
@@ -223,36 +239,28 @@
         </form>
     </div>
 
+    <!-- Script Logika Client-Side -->
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNuh-E6Lutp5jC5_25YAvF2e_4fk2O7AzdbU_Sa3CSOFs2SmhhzC5urEgvsQt7hAQ/exec";
         let rawDatabase = [];
 
         // Inisialisasi Otomatis Saat Buka Form
         window.addEventListener("DOMContentLoaded", () => {
-            // Set Tanggal Hari Ini & Batasi maksimal hari ini
             const today = new Date().toISOString().split('T')[0];
             document.getElementById("tanggal").value = today;
             document.getElementById("tanggal").max = today;
 
-            // Generate UUID untuk baris entri ini
             document.getElementById("id_field").value = generateUniqueID();
-
-            // Ambil Waktu Check-In Sekarang
             document.getElementById("checkin_field").value = new Date().toLocaleString('id-ID');
 
-            // Ambil GPS Lokasi Sales
             getLocation();
-
-            // Muat Data Pembanding untuk Filter Prospek Terdaftar
             loadPreExistingLeads();
         });
 
-        // 1. Fungsi Pembuat ID Unik
         function generateUniqueID() {
             return 'qco_' + Math.random().toString(36).substr(2, 9);
         }
 
-        // 2. Fungsi Deteksi Lokasi GPS
         function getLocation() {
             const gpsField = document.getElementById("gps_field");
             if (navigator.geolocation) {
@@ -270,50 +278,69 @@
             }
         }
 
-        // 3. Mengambil database berjalan untuk penyaringan dynamic Coffee Shop
+        // AMBIL DATA G-SHEET: Dioptimalkan dengan penanganan cache bypass agar data selalu real-time di semua device
         async function loadPreExistingLeads() {
             try {
-                const res = await fetch(WEB_APP_URL, { method: "GET", redirect: "follow" });
+                // Tambahkan timestamp acak agar browser tidak menyimpan cache data lama (Bypass Cache)
+                const fetchUrl = `${WEB_APP_URL}?_t=${new Date().getTime()}`;
+                const res = await fetch(fetchUrl, { 
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
                 if (res.ok) {
                     rawDatabase = await res.json();
+                    console.log("Database berhasil sinkron. Total data baris:", rawDatabase.length);
+                    // Panggil ulang filter jika nama sales sudah terpilih sebelumnya
+                    handleSalesOrVisitChange();
                 }
             } catch (e) {
-                console.error("Gagal mengambil dataset referensi filter: ", e);
+                console.error("Gagal sinkronisasi data GSheet: ", e);
             }
         }
 
-        // 4. Logika Gabungan Perubahan Pilihan Sales ATAU Visit Ke (Dynamic Dropdown Filter)
+        // LOGIKA UTAMA: Filter dinamis & Pembatasan ketat input "Toko Baru"
         function handleSalesOrVisitChange() {
             const salesVal = document.getElementById("sales").value;
             const visitVal = document.getElementById("visit_ke").value;
             const selectShop = document.getElementById("coffee_shop_select");
+            const textShop = document.getElementById("coffee_shop_text");
             
             // Atur default dropdown pilihan toko
-            selectShop.innerHTML = `
-                <option value="">-- Pilih Coffee Shop --</option>
-            `;
+            selectShop.innerHTML = `<option value="">-- Pilih Coffee Shop --</option>`;
 
-            // Jika Kunjungan Pertama, perbolehkan input toko baru manual
+            // ATURAN 1: "+ Toko Baru" HANYA boleh ada jika Visit Pertama
             if (visitVal === "Pertama") {
                 const optNew = document.createElement("option");
                 optNew.value = "NEW";
                 optNew.innerText = "-- + Toko Baru (Input Manual) --";
                 selectShop.appendChild(optNew);
+            } else {
+                // Jika selain Visit Pertama, paksa input teks nama toko baru untuk selalu tersembunyi
+                textShop.classList.add("hidden");
+                textShop.required = false;
+                textShop.value = "";
             }
 
             if (salesVal && rawDatabase.length > 0) {
-                // Saring data berdasarkan sales terpilih
-                const salesData = rawDatabase.filter(item => item["Sales"] === salesVal);
+                // Saring data mentah berdasarkan Sales bersangkutan
+                const salesData = rawDatabase.filter(item => {
+                    const dbSales = item["Sales"] ? String(item["Sales"]).trim().toLowerCase() : "";
+                    return dbSales === salesVal.toLowerCase();
+                });
 
-                // Dapatkan status kunjungan terakhir tiap toko
+                // Dapatkan status kunjungan paling update dan status closing terakhir tiap toko
                 const shopLastStatus = {};
                 salesData.forEach(item => {
-                    const shopName = String(item["Nama Coffee Shop"]).trim();
-                    const currentVisit = String(item["Visit Ke"]).trim();
-                    const closingStatus = String(item["Closing"] || "On Going").trim().toLowerCase();
+                    const shopName = item["Nama Coffee Shop"] ? String(item["Nama Coffee Shop"]).trim() : "";
+                    const currentVisit = item["Visit Ke"] ? String(item["Visit Ke"]).trim() : "";
+                    const closingStatus = item["Closing"] ? String(item["Closing"]).trim().toLowerCase() : "on going";
                     
+                    if (!shopName) return;
+
                     if (!shopLastStatus[shopName]) {
-                        shopLastStatus[shopName] = { maxVisit: 0, status: "On Going" };
+                        shopLastStatus[shopName] = { maxVisit: 0, status: "on going" };
                     }
                     
                     let visitNum = 0;
@@ -321,29 +348,30 @@
                     else if (currentVisit === "Kedua") visitNum = 2;
                     else if (currentVisit === "Ketiga") visitNum = 3;
 
-                    if (visitNum > shopLastStatus[shopName].maxVisit) {
+                    // Mengambil tahapan visit tertinggi beserta status penutupan terakhirnya
+                    if (visitNum >= shopLastStatus[shopName].maxVisit) {
                         shopLastStatus[shopName].maxVisit = visitNum;
                         shopLastStatus[shopName].status = closingStatus;
                     }
                 });
 
-                // Pilih toko yang memenuhi kriteria kunjungan
+                // Filter nama toko yang layak masuk ke dropdown
                 const validShops = [];
                 for (const [shopName, info] of Object.entries(shopLastStatus)) {
-                    // Jangan tampilkan toko yang statusnya sudah 'stop' atau 'closing'
-                    if (info.status === "stop" || info.status === "closing") {
+                    // ATURAN 3: Jika status toko sudah "stop" atau "closing" di sheet, jangan tampilkan di visit berikutnya!
+                    if (info.status === "stop" || info.status === "closing" || info.status === "ya") {
                         continue;
                     }
 
-                    // Syarat Kunjungan Ke-2: Harus sudah pernah dikunjungi di Kunjungan Pertama
+                    // Syarat Masuk Visit Kedua: Tahap sebelumnya harus sudah selesai di Visit Pertama
                     if (visitVal === "Kedua" && info.maxVisit === 1) {
                         validShops.push(shopName);
                     }
-                    // Syarat Kunjungan Ke-3: Harus sudah pernah dikunjungi di Kunjungan Kedua
+                    // Syarat Masuk Visit Ketiga: Tahap sebelumnya harus sudah selesai di Visit Kedua
                     else if (visitVal === "Ketiga" && info.maxVisit === 2) {
                         validShops.push(shopName);
                     }
-                    // Syarat Kunjungan Maksimal (3x): Harus sudah pernah dikunjungi di Kunjungan Ketiga
+                    // Syarat Masuk Visit Maksimal (3x): Harus sudah pernah sampai di Visit Ketiga
                     else if (visitVal === "Maksimal 3 kali Visit" && info.maxVisit === 3) {
                         validShops.push(shopName);
                     }
@@ -361,12 +389,13 @@
             toggleConditionalFields();
         }
 
-        // 5. Logika jika memilih Toko Baru (Teks Input) vs Toko Lama (Dropdown)
+        // Menampilkan text input jika memilih opsi "+ Toko Baru" (Hanya berlaku di Visit Pertama)
         function handleShopSelection() {
             const selectShop = document.getElementById("coffee_shop_select");
             const textShop = document.getElementById("coffee_shop_text");
+            const visitVal = document.getElementById("visit_ke").value;
             
-            if (selectShop.value === "NEW" || selectShop.value === "") {
+            if (visitVal === "Pertama" && (selectShop.value === "NEW" || selectShop.value === "")) {
                 textShop.classList.remove("hidden");
                 textShop.required = true;
                 if (selectShop.value === "NEW") {
@@ -379,14 +408,13 @@
             }
         }
 
-        // 6. Logika Dinamis Conditional Form (Show/Hide & Required Khusus Visit Pertama)
+        // Atur Show/Hide detail field & Status Required Input
         function toggleConditionalFields() {
             const visit = document.getElementById("visit_ke").value;
             const firstSection = document.getElementById("visit_pertama_section");
             const alasan2 = document.getElementById("alasan_visit_2_wrapper");
             const alasan3 = document.getElementById("alasan_visit_3_wrapper");
 
-            // Element Input Visit Pertama yang wajib di-set "Required" jika kunjungan pertama
             const area = document.getElementById("area");
             const kursi = document.getElementById("jumlah_kursi");
             const foto = document.getElementById("foto_menu");
@@ -402,7 +430,6 @@
                 alasan3.classList.add("hidden");
                 document.getElementById("alasan_visit_3").required = false;
 
-                // Set Wajib Diisi (Required)
                 area.required = true;
                 kursi.required = true;
                 foto.required = true;
@@ -413,7 +440,6 @@
             } else {
                 firstSection.classList.add("hidden");
                 
-                // Matikan Wajib Diisi agar data tidak bentrok saat kirim form
                 area.required = false;
                 kursi.required = false;
                 foto.required = false;
@@ -422,7 +448,6 @@
                 bahan.required = false;
                 total.required = false;
                 
-                // Urusan Alasan Visit
                 if (visit === "Kedua") {
                     alasan2.classList.remove("hidden");
                     document.getElementById("alasan_visit_2").required = true;
@@ -442,7 +467,7 @@
             }
         }
 
-        // 7. Mengonversi File Foto Menu ke Base64 agar dapat masuk ke baris Sheet
+        // Konversi Foto ke Base64
         function processImageFile(event) {
             const file = event.target.files[0];
             const base64Input = document.getElementById("foto_menu_base64");
@@ -450,7 +475,7 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    base64Input.value = e.target.result; // Menyimpan data base64 terenkripsi
+                    base64Input.value = e.target.result;
                 };
                 reader.readAsDataURL(file);
             } else {
@@ -458,7 +483,6 @@
             }
         }
 
-        // 8. Logika Sampling
         function toggleSamplingField() {
             const samplingVal = document.getElementById("sampling").value;
             const wrapper = document.getElementById("jenis_sample_wrapper");
@@ -474,7 +498,6 @@
             }
         }
 
-        // 9. Logika Bahan Espresso Lainnya
         function toggleBahanLainnya() {
             const bahan = document.getElementById("bahan_espresso").value;
             const wrapper = document.getElementById("bahan_lainnya_wrapper");
@@ -490,7 +513,6 @@
             }
         }
 
-        // 10. Logika Closing Data (Jumlah & Harga)
         function toggleClosingFields() {
             const closingVal = document.getElementById("closing").value;
             const wrapper = document.getElementById("closing_data_wrapper");
@@ -510,7 +532,7 @@
             }
         }
 
-        // 11. Pengiriman Data Form ke Google Sheets via GAS Post
+        // Submit Form ke GSheets
         async function handleSubmit(event) {
             event.preventDefault();
             const btn = document.getElementById("btnSubmit");
@@ -520,15 +542,13 @@
             const form = document.getElementById("salesForm");
             const formData = new FormData(form);
             
-            // Konversi FormData ke JSON Object
             const dataObject = {};
             formData.forEach((value, key) => {
                 dataObject[key] = value;
             });
 
             try {
-                // Mengirimkan POST ke Web App Google Apps Script
-                const response = await fetch(WEB_APP_URL, {
+                await fetch(WEB_APP_URL, {
                     method: "POST",
                     mode: "no-cors", 
                     headers: {
@@ -540,16 +560,16 @@
                 alert("Laporan Kunjungan Berhasil Terkirim!");
                 form.reset();
                 
-                // Regenerate ID Baru & Waktu Baru untuk input berikutnya
                 document.getElementById("id_field").value = generateUniqueID();
                 document.getElementById("checkin_field").value = new Date().toLocaleString('id-ID');
                 getLocation();
                 
-                // Reset Dropdown & Tampilan Berjenjang
                 handleSalesOrVisitChange();
                 toggleSamplingField();
                 toggleClosingFields();
-                loadPreExistingLeads(); // Tarik database terbaru untuk pembaharuan list
+                
+                // Muat ulang data mentah agar sinkron dengan yang baru diinput
+                setTimeout(loadPreExistingLeads, 1500);
                 
             } catch (error) {
                 console.error("Gagal mengirim data:", error);
