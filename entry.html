@@ -22,7 +22,7 @@
     <div id="loginScreen" class="max-w-md w-full bg-zinc-900 border border-zinc-800 p-8 rounded-xl shadow-2xl">
         <div class="border-b border-zinc-800 pb-4 mb-6 text-center">
             <h1 class="text-2xl font-black tracking-wider text-amber-500">Q.CO PORTAL</h1>
-            <p class="text-xs text-zinc-400 mt-1">Silakan masuk menggunakan akun Sales / Admin Anda.</p>
+            <p class="text-xs text-zinc-400 mt-1">Silakan masuk menggunakan akun Sales atau Admin Anda.</p>
         </div>
         <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
             <div>
@@ -77,9 +77,14 @@
                 <button onclick="handleLogout()" class="text-xs bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1 rounded transition">
                     Logout
                 </button>
-                <button onclick="bukaModalKunjungan()" class="text-xs bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-zinc-950 px-3 py-1.5 rounded font-bold transition flex items-center gap-1">
-                    📅 Jadwal Kunjungan
-                </button>
+                <div class="flex gap-2">
+                    <button onclick="bukaModalKunjungan()" class="text-xs bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-zinc-950 px-3 py-1.5 rounded font-bold transition flex items-center gap-1">
+                        📅 Jadwal Kunjungan
+                    </button>
+                    <button onclick="bukaModalProfile()" class="text-xs bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-zinc-950 px-3 py-1.5 rounded font-bold transition flex items-center gap-1">
+                        📇 Profile Sales
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -316,6 +321,9 @@
         </form>
     </div>
 
+    <!-- ==========================================
+         MODAL JADWAL KUNJUNGAN INTERNAL (TAILWIND STYLE)
+         ========================================== -->
     <div id="modalJadwalKunjungan" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
         <div class="max-w-md w-full bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-2xl relative">
             <span onclick="tutupModalKunjungan()" class="absolute top-3 right-4 text-zinc-400 hover:text-white text-xl cursor-pointer font-bold">&times;</span>
@@ -370,6 +378,70 @@
                         class="w-full bg-amber-600 hover:bg-amber-500 text-zinc-950 font-bold uppercase tracking-wider py-3 rounded transition duration-150">
                     Simpan Jadwal Kunjungan
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL PROFILE SALES DIGITAL & SHARE WA (NEW)
+         ========================================== -->
+    <div id="modalProfileSales" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="max-w-md w-full bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-2xl relative">
+            <span onclick="tutupModalProfile()" class="absolute top-3 right-4 text-zinc-400 hover:text-white text-xl cursor-pointer font-bold">&times;</span>
+            
+            <div class="text-center mb-4 border-b border-zinc-800 pb-3">
+                <h2 class="text-xs font-black tracking-widest text-zinc-400 uppercase">Q.co Coffee Lab & Roastery</h2>
+                <h1 class="text-lg font-black text-amber-500 uppercase tracking-wider">OFFICIAL SALES PROFILE</h1>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-zinc-950 p-4 rounded-lg border border-zinc-800 space-y-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-amber-600 text-zinc-950 font-black flex items-center justify-center rounded-full text-lg uppercase shadow">
+                            <span id="profile_initials">SL</span>
+                        </div>
+                        <div>
+                            <h3 id="profile_display_name" class="font-extrabold text-base text-zinc-100">Nama Sales</h3>
+                            <p class="text-xs text-amber-500 font-bold uppercase tracking-wider">Jabatan: Salesman</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-xs space-y-1 text-zinc-400 border-t border-zinc-900 pt-2 font-mono">
+                        <p class="flex justify-between">
+                            <span>No. WhatsApp:</span> 
+                            <span id="profile_display_wa" class="text-zinc-200 font-bold">Belum disetel</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Atur / Ubah Nomor WA Sales *</label>
+                    <input type="tel" id="profile_input_wa" placeholder="08xxxxxxxxxx" oninput="regenerateProfileCard()"
+                           class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 font-mono text-sm">
+                </div>
+
+                <div class="flex flex-col items-center bg-zinc-950 p-4 rounded-lg border border-zinc-800">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-3 text-center">Scan QR Code untuk Chat WA Langsung</span>
+                    <div id="qrcode_container" class="bg-white p-3 rounded-lg flex items-center justify-center shadow-inner">
+                        <!-- QR Code akan digenerate otomatis -->
+                        <img id="qrcode_img" src="" alt="QR Code Link WA" class="w-32 h-32 select-none">
+                    </div>
+                    <a id="profile_link_anchor" href="#" target="_blank" class="text-xs text-amber-500 hover:text-amber-400 font-bold mt-3 font-mono underline">
+                        wa.me (Link Terbuka)
+                    </a>
+                </div>
+
+                <div class="border-t border-zinc-800 pt-4 space-y-3">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Kirim Kartu Nama Digital ke Leads (No WA Leads) *</label>
+                        <input type="tel" id="lead_destination_wa" placeholder="Masukkan nomor WA klien (08...)"
+                               class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500 font-mono text-sm">
+                    </div>
+                    <button onclick="shareProfileToLead()"
+                            class="w-full bg-emerald-600 hover:bg-emerald-500 text-zinc-950 font-black uppercase tracking-wider py-3 rounded transition duration-150 flex items-center justify-center gap-2 text-sm">
+                        💬 Bagikan Profil ke WA Klien
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -898,9 +970,6 @@
             }
         }
 
-        // ==========================================
-        // FUNGSI KONTROL POPUP JADWAL KUNJUNGAN (HTML)
-        // ==========================================
         function bukaModalKunjungan() {
             if (!currentUser) return;
             
@@ -1006,6 +1075,92 @@
                 btn.disabled = false;
                 btn.innerText = "Simpan Jadwal Kunjungan";
             }
+        }
+
+        // ==========================================
+        // FUNGSI BARU MODAL PROFILE SALES & INTEGRASI WA
+        // ==========================================
+        function formatUntukInternationalWA(nomorAsli) {
+            var bersih = nomorAsli.replace(/\D/g, "");
+            if (bersih.indexOf("0") === 0) {
+                bersih = "62" + bersih.substring(1);
+            }
+            return bersih;
+        }
+
+        function bukaModalProfile() {
+            if (!currentUser) return;
+            
+            var namaSales = currentUser.name;
+            document.getElementById("profile_display_name").innerText = namaSales;
+            
+            var initial = "";
+            var parts = namaSales.split(" ");
+            if (parts.length > 0 && parts[0]) initial += parts[0].substring(0, 1);
+            if (parts.length > 1 && parts[1]) initial += parts[1].substring(0, 1);
+            if (initial === "") initial = "SL";
+            document.getElementById("profile_initials").innerText = initial.toUpperCase();
+            
+            var localStoredWA = localStorage.getItem("qco_sales_wa_" + namaSales) || "";
+            document.getElementById("profile_input_wa").value = localStoredWA;
+            
+            regenerateProfileCard();
+            
+            document.getElementById("modalProfileSales").classList.remove("hidden");
+        }
+
+        function tutupModalProfile() {
+            document.getElementById("modalProfileSales").classList.add("hidden");
+            document.getElementById("lead_destination_wa").value = "";
+        }
+
+        function regenerateProfileCard() {
+            var namaSales = currentUser.name;
+            var nomorWA = document.getElementById("profile_input_wa").value.trim();
+            var displaySpan = document.getElementById("profile_display_wa");
+            var qrImg = document.getElementById("qrcode_img");
+            var anchor = document.getElementById("profile_link_anchor");
+            
+            if (nomorWA !== "") {
+                localStorage.setItem("qco_sales_wa_" + namaSales, nomorWA);
+                displaySpan.innerText = nomorWA;
+                
+                var formatWA = formatUntukInternationalWA(nomorWA);
+                var rawTextLink = "https:wa.me" + formatWA;
+                
+                anchor.href = rawTextLink;
+                anchor.innerText = "wa.me" + formatWA;
+                
+                var safeUrlEncoded = encodeURIComponent(rawTextLink);
+                qrImg.src = "https:api.qrserver.comv1create-qr-code?size=150x150&data=" + safeUrlEncoded;
+            } else {
+                displaySpan.innerText = "Belum disetel";
+                anchor.href = "#";
+                anchor.innerText = "Nomor WA kosong";
+                qrImg.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><rect width='150' height='150' fill='%2327272a'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%2371717a' font-size='10'>QR Code Kosong</text></svg>";
+            }
+        }
+
+        function shareProfileToLead() {
+            var nomorWA = document.getElementById("profile_input_wa").value.trim();
+            if (nomorWA === "") {
+                alert("Mohon atur nomor WA Anda terlebih dahulu!");
+                return;
+            }
+            
+            var leadWAInput = document.getElementById("lead_destination_wa").value.trim();
+            if (leadWAInput === "") {
+                alert("Mohon isi nomor WhatsApp klien / leads tujuan!");
+                return;
+            }
+            
+            var waSalesFormatted = formatUntukInternationalWA(nomorWA);
+            var waLeadFormatted = formatUntukInternationalWA(leadWAInput);
+            
+            var teksPesan = "Halo, salam kenal!\n\nSaya *" + currentUser.name + "* (Salesman dari *Q.co Coffee Lab & Roastery*).\n\nBerikut adalah kontak resmi WhatsApp saya yang dapat Anda hubungi sewaktu-waktu:\n👉 https:wa.me" + waSalesFormatted + "\n\nTerima kasih, semoga kita bisa berkolaborasi dengan baik!";
+            var urlKirim = "https:api.whatsapp.comsend?phone=" + waLeadFormatted + "&text=" + encodeURIComponent(teksPesan);
+            
+            window.open(urlKirim, "_blank");
         }
     </script>
 </body>
