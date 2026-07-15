@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Q.co Coffee Lab - Sales Entry Form & Dashboard</title>
-    <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -20,9 +19,6 @@
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen p-4 md:p-8 flex items-center justify-center">
 
-    <!-- ==========================================
-         SCREEN 1: FORM LOGIN
-         ========================================== -->
     <div id="loginScreen" class="max-w-md w-full bg-zinc-900 border border-zinc-800 p-8 rounded-xl shadow-2xl">
         <div class="border-b border-zinc-800 pb-4 mb-6 text-center">
             <h1 class="text-2xl font-black tracking-wider text-amber-500">Q.CO PORTAL</h1>
@@ -46,9 +42,6 @@
         </form>
     </div>
 
-    <!-- ==========================================
-         MODAL POPUP: PAKSA GANTI PASSWORD DEFAULT
-         ========================================== -->
     <div id="resetPasswordModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
         <div class="max-w-sm w-full bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-2xl">
             <h2 class="text-lg font-black text-amber-500 uppercase tracking-wider mb-2">Ganti Password Default</h2>
@@ -73,23 +66,23 @@
         </div>
     </div>
 
-    <!-- ==========================================
-         SCREEN 2: FORM ENTRY & DASHBOARD UTAMA
-         ========================================== -->
     <div id="mainApp" class="max-w-2xl w-full bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-xl shadow-2xl hidden">
         
-        <!-- Header -->
         <div class="border-b border-zinc-800 pb-4 mb-6 flex justify-between items-center">
             <div>
                 <h1 class="text-xl font-black tracking-wider text-amber-500">Q.CO SALES PORTAL</h1>
                 <p class="text-xs text-zinc-400 mt-1">Selamat bekerja, <span id="salutation_name" class="font-bold text-zinc-200">Sales</span>!</p>
             </div>
-            <button onclick="handleLogout()" class="text-xs bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1 rounded transition">
-                Logout
-            </button>
+            <div class="flex flex-col items-end gap-2">
+                <button onclick="handleLogout()" class="text-xs bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1 rounded transition">
+                    Logout
+                </button>
+                <button onclick="bukaModalKunjungan()" class="text-xs bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-zinc-950 px-3 py-1.5 rounded font-bold transition flex items-center gap-1">
+                    📅 Jadwal Kunjungan
+                </button>
+            </div>
         </div>
 
-        <!-- AREA REMINDER DASHBOARD (DINAMIS SENSITIF SALES) -->
         <div id="sales_dashboard_section" class="mb-8 p-4 bg-zinc-950 border border-zinc-800 rounded-lg space-y-4">
             <h2 class="text-xs font-black text-amber-500 tracking-widest uppercase flex items-center gap-2">
                 <span class="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
@@ -97,7 +90,6 @@
             </h2>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Card 1: Belum Visit 2 -->
                 <div class="bg-zinc-900 p-3 rounded border border-zinc-800">
                     <div class="flex justify-between items-start">
                         <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Belum Visit 2</span>
@@ -108,7 +100,6 @@
                     </ul>
                 </div>
 
-                <!-- Card 2: Belum Visit 3 -->
                 <div class="bg-zinc-900 p-3 rounded border border-zinc-800">
                     <div class="flex justify-between items-start">
                         <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Belum Visit 3</span>
@@ -119,7 +110,6 @@
                     </ul>
                 </div>
 
-                <!-- Card 3: Belum Terima Sample -->
                 <div class="bg-zinc-900 p-3 rounded border border-zinc-800">
                     <div class="flex justify-between items-start">
                         <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Belum Kirim Sample</span>
@@ -132,15 +122,11 @@
             </div>
         </div>
 
-        <!-- Form Element -->
         <form id="salesForm" class="space-y-5" onsubmit="handleSubmit(event)">
-            
-            <!-- Hidden Fields (System Generated) -->
             <input type="hidden" id="id_field" name="ID">
             <input type="hidden" id="gps_field" name="GPS Loc">
             <input type="hidden" id="checkin_field" name="Waktu Check In">
 
-            <!-- Row 1: Tanggal & Sales -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Tanggal Kunjungan *</label>
@@ -161,7 +147,6 @@
                 </div>
             </div>
 
-            <!-- Row 2: Visit Ke -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Kunjungan (Visit Ke) *</label>
                 <select id="visit_ke" name="Visit Ke" required onchange="handleSalesOrVisitChange()"
@@ -173,7 +158,6 @@
                 </select>
             </div>
 
-            <!-- Row 3: Nama Coffee Shop -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Nama Coffee Shop *</label>
                 <div class="space-y-2">
@@ -186,7 +170,6 @@
                 </div>
             </div>
 
-            <!-- CONDITIONAL SECTION: Hanya untuk Visit Pertama -->
             <div id="visit_pertama_section" class="space-y-5 border-l-2 border-amber-500/30 pl-4 py-2 my-2">
                 <h3 class="text-sm font-extrabold text-amber-500 uppercase tracking-wider">Detail Kunjungan Pertama</h3>
                 
@@ -207,7 +190,6 @@
                     </div>
                 </div>
 
-                <!-- Input File Upload Foto Menu -->
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Foto Menu Coffee Shop *</label>
                     <input type="file" id="foto_menu" accept="image/*" onchange="processImageFile(event)"
@@ -261,7 +243,6 @@
                     </div>
                 </div>
 
-                <!-- Input Bahan Espresso Lainnya -->
                 <div id="bahan_lainnya_wrapper" class="hidden">
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Sebutkan Bahan Espresso Lainnya *</label>
                     <input type="text" id="bahan_espresso_lainnya" name="Bahan Espresso Lainnya" placeholder="Masukkan jenis bahan espresso"
@@ -269,7 +250,6 @@
                 </div>
             </div>
 
-            <!-- CONDITIONAL: Alasan Visit Ke-2 & Ke-3 -->
             <div id="alasan_visit_2_wrapper" class="hidden">
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Alasan Visit Ke-2 *</label>
                 <textarea id="alasan_visit_2" name="Alasan visit ke 2" rows="2" placeholder="Sebutkan kendala atau agenda pertemuan kedua"
@@ -282,7 +262,6 @@
                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
             </div>
 
-            <!-- Sampling Section -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-zinc-800 pt-4">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Kirim / Beri Sample? *</label>
@@ -299,7 +278,6 @@
                 </div>
             </div>
 
-            <!-- Progress / Status Closing -->
             <div class="border-t border-zinc-800 pt-4">
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Progres / Status Closing *</label>
                 <select id="closing" name="Closing" required onchange="toggleClosingFields()"
@@ -310,7 +288,6 @@
                 </select>
             </div>
 
-            <!-- CONDITIONAL: Closing Data -->
             <div id="closing_data_wrapper" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 border-l-2 border-emerald-500/30 pl-4 py-1">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Jumlah Pembelian (kg) *</label>
@@ -324,29 +301,80 @@
                 </div>
             </div>
 
-            <!-- Keterangan Tambahan -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Keterangan / Catatan Tambahan</label>
                 <textarea name="Keterangan tambahan" rows="3" placeholder="Tuliskan catatan negosiasi penting di sini..."
                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
             </div>
 
-            <!-- Submit Button -->
             <div class="pt-4">
                 <button type="submit" id="btnSubmit"
                         class="w-full bg-amber-600 hover:bg-amber-500 text-zinc-950 font-bold uppercase tracking-wider py-3 rounded-lg transition duration-150">
                     Kirim Laporan Kunjungan
                 </button>
             </div>
-
         </form>
     </div>
 
-    <!-- ==========================================
-         JAVASCRIPT CODE
-         ========================================== -->
+    <div id="modalJadwalKunjungan" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="max-w-md w-full bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-2xl relative">
+            <span onclick="tutupModalKunjungan()" class="absolute top-3 right-4 text-zinc-400 hover:text-white text-xl cursor-pointer font-bold">&times;</span>
+            
+            <h2 class="text-lg font-black text-amber-500 uppercase tracking-wider mb-2">📅 Rencana Kunjungan Terjadwal</h2>
+            <p class="text-xs text-zinc-400 mb-4">Buat jadwal agenda follow-up berkala ke partner coffee shop Anda.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Salesman</label>
+                    <input type="text" id="modal_salesman" readonly
+                           class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-400 focus:outline-none font-bold">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Pilih Toko / Coffee Shop *</label>
+                    <select id="modal_nama_toko" required
+                            class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                        <option value="">-- Pilih Toko --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Tanggal Rencana Kunjungan *</label>
+                    <input type="date" id="modal_tanggal_kunjungan" required
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Keperluan Agenda *</label>
+                    <select id="modal_keperluan" onchange="toggleModalKeperluanLainnya()"
+                            class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                        <option value="Meeting saja">Meeting saja</option>
+                        <option value="Meeting dan Demo">Meeting dan Demo</option>
+                        <option value="Lainnya">Lainnya (Sebutkan)</option>
+                    </select>
+                </div>
+
+                <div id="modal_box_keperluan_lainnya" class="hidden">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Detail Keperluan Lainnya *</label>
+                    <input type="text" id="modal_keperluan_detail" placeholder="Contoh: Kalibrasi Ulang Espresso"
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Catatan Awal / Hasil Kunjungan</label>
+                    <textarea id="modal_hasil_kunjungan" rows="3" placeholder="Tulis instruksi atau poin pembahasan penting di sini..."
+                              class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500"></textarea>
+                </div>
+
+                <button onclick="prosesSimpanJadwalKunjungan()" id="btnSimpanJadwal"
+                        class="w-full bg-amber-600 hover:bg-amber-500 text-zinc-950 font-bold uppercase tracking-wider py-3 rounded transition duration-150">
+                    Simpan Jadwal Kunjungan
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // MASUKKAN URL DEPLOY WEB APP APPS SCRIPT ANDA DI SINI
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNuh-E6Lutp5jC5_25YAvF2e_4fk2O7AzdbU_Sa3CSOFs2SmhhzC5urEgvsQt7hAQ/exec";
         
         let rawDatabase = [];
@@ -379,9 +407,6 @@
             }
         }
 
-        // ==========================================
-        // FUNGSI AUTH LOGIN & LOGOUT (HTML)
-        // ==========================================
         async function handleLoginSubmit(event) {
             event.preventDefault();
             const btn = document.getElementById("btnLogin");
@@ -457,7 +482,6 @@
             const salesSelect = document.getElementById("sales");
             salesSelect.value = currentUser.name;
             
-            // Kunci sales agar tidak bisa input atas nama sales lain, kecuali Admin
             if (currentUser.role !== "Admin") {
                 salesSelect.disabled = true;
             } else {
@@ -476,9 +500,6 @@
             document.getElementById("loginScreen").classList.remove("hidden");
         }
 
-        // ==========================================
-        // AMBIL DATA & PENYARINGAN RELASIONAL KOPI (HTML)
-        // ==========================================
         async function loadPreExistingLeads() {
             try {
                 const selectShop = document.getElementById("coffee_shop_select");
@@ -490,17 +511,13 @@
                 if (res.ok) {
                     const fullData = await res.json();
                     
-                    // Filter baris kosong langsung pada frontend demi loading instan
                     rawDatabase = fullData.filter(row => {
                         const shop = (row["Nama Coffee Shop"] || row["nama_coffee_shop"] || "").toString().trim();
                         const sales = (row["Sales"] || row["sales"] || "").toString().trim();
                         return shop !== "" && sales !== "";
                     });
 
-                    // 1. Update list dropdown form berdasarkan pilihan sales & visit
                     handleSalesOrVisitChange(); 
-                    
-                    // 2. Render UI Dashboard Reminder khusus Sales yang login
                     renderSalesDashboard();
                 }
             } catch (e) {
@@ -509,17 +526,12 @@
             }
         }
 
-        // ==========================================
-        // FUNGSI UTAMA RENDER REMINDER DASHBOARD
-        // ==========================================
         function renderSalesDashboard() {
             if (!currentUser || rawDatabase.length === 0) return;
 
             const salesVal = currentUser.name;
             const history = {};
 
-            // Urutkan database dari yang terlama ke terbaru (FIFO) berdasarkan indeks baris asli
-            // karena Google Sheets menyimpan data secara kronologis (baris awal adalah yang terlama)
             rawDatabase.forEach((row, index) => {
                 const dbSales = (row["Sales"] || row["sales"] || "").toString().trim().toLowerCase();
                 if (dbSales !== salesVal.toLowerCase()) return;
@@ -542,8 +554,8 @@
                         firstVisitDate: dateStr,
                         secondVisitDate: "",
                         thirdVisitDate: "",
-                        originalIndex: index, // Prioritas pengurutan
-                        sampleStatus: "tidak" // Default
+                        originalIndex: index,
+                        sampleStatus: "tidak"
                     };
                 }
 
@@ -555,7 +567,6 @@
                 if (visitType === "kedua") {
                     history[shopName].hasKedua = true;
                     if (dateStr) history[shopName].secondVisitDate = dateStr;
-                    // Jika di visit kedua dikirim sample, maka status sample terpenuhi
                     if (wantsSample === "ya") history[shopName].sampleStatus = "terkirim";
                 }
                 if (visitType === "ketiga") {
@@ -569,55 +580,44 @@
                 }
             });
 
-            // Klasifikasikan toko ke masing-masing kategori reminder
             const yetToVisit2 = [];
             const yetToVisit3 = [];
             const yetToReceiveSample = [];
 
             for (const [shopName, info] of Object.entries(history)) {
-                // Abaikan jika toko sudah Deal (Closing) atau Gagal (Stop)
                 if (info.lastClosingStatus !== "on going") continue;
 
-                // 1. Belum Visit Ke-2: Baru ada Visit 1, belum ada Visit 2 maupun 3
                 if (info.hasPertama && !info.hasKedua && !info.hasKetiga) {
                     yetToVisit2.push(info);
                 }
-
-                // 2. Belum Visit Ke-3: Sudah Visit 1 dan 2, tapi belum Visit 3
                 if (info.hasPertama && info.hasKedua && !info.hasKetiga) {
                     yetToVisit3.push(info);
                 }
-
-                // 3. Belum Kirim Sample: Di Visit 1 minta sample, tapi di database/kunjungan berikutnya belum tercatat terealisasi
                 if (info.sampleStatus === "butuh_kirim") {
                     yetToReceiveSample.push(info);
                 }
             }
 
-            // Urutkan berdasarkan index terkecil (data terlama masuk duluan)
             const sortFn = (a, b) => a.originalIndex - b.originalIndex;
             yetToVisit2.sort(sortFn);
             yetToVisit3.sort(sortFn);
             yetToReceiveSample.sort(sortFn);
 
-            // Tampilkan jumlah total badge
             document.getElementById("badge_count_visit2").innerText = yetToVisit2.length;
             document.getElementById("badge_count_visit3").innerText = yetToVisit3.length;
             document.getElementById("badge_count_sample").innerText = yetToReceiveSample.length;
 
-            // Render 5 list terlama untuk masing-masing card
             renderListHelper("list_visit2", yetToVisit2.slice(0, 5), "firstVisitDate");
             renderListHelper("list_visit3", yetToVisit3.slice(0, 5), "secondVisitDate");
             renderListHelper("list_sample", yetToReceiveSample.slice(0, 5), "firstVisitDate");
         }
 
-        // Helper untuk mencetak list li di dashboard
         function renderListHelper(elementId, items, dateField) {
             const ul = document.getElementById(elementId);
             ul.innerHTML = "";
 
             if (items.length === 0) {
-                ul.innerHTML = `<li class="py-2 text-zinc-500 italic text-[11px] text-center">Semua aman! Tidak ada tanggungan.</li>`;
+                ul.innerHTML = `<li class="py-2 text-zinc-500 italic text-[11px] text-center">Semua aman!</li>`;
                 return;
             }
 
@@ -625,7 +625,6 @@
                 const li = document.createElement("li");
                 li.className = "py-1.5 flex justify-between items-center text-[11px] hover:bg-zinc-850 px-1 rounded transition";
                 
-                // Format tanggal manis jika ada
                 let displayDate = "";
                 if (item[dateField]) {
                     const d = new Date(item[dateField]);
@@ -666,7 +665,6 @@
             if (salesVal && rawDatabase.length > 0) {
                 const history = {};
 
-                // Loop 1: Petakan riwayat kunjungan & status closing terakhir dari sales terkait
                 for (let i = 0; i < rawDatabase.length; i++) {
                     const row = rawDatabase[i];
                     const dbSales = (row["Sales"] || row["sales"] || "").toString().trim().toLowerCase();
@@ -699,9 +697,7 @@
 
                 const validShops = [];
 
-                // Loop 2: Terapkan aturan relasi logis
                 for (const [shopName, info] of Object.entries(history)) {
-                    
                     if (info.lastClosingStatus !== "on going") continue;
 
                     if (visitVal === "Kedua") {
@@ -846,9 +842,6 @@
             }
         }
 
-        // ==========================================
-        // SUBMIT LAPORAN (HTML)
-        // ==========================================
         async function handleSubmit(event) {
             event.preventDefault();
             const btn = document.getElementById("btnSubmit");
@@ -857,7 +850,6 @@
 
             const form = document.getElementById("salesForm");
             
-            // Re-enable sales field agar nilainya ikut terkirim ke backend
             const salesSelect = document.getElementById("sales");
             salesSelect.disabled = false;
 
@@ -865,7 +857,6 @@
             const dataObject = {};
             formData.forEach((value, key) => { dataObject[key] = value; });
 
-            // Kembalikan status disabled jika bukan Admin setelah data didapat
             if (currentUser.role !== "Admin") {
                 salesSelect.disabled = true;
             }
@@ -873,7 +864,7 @@
             try {
                 const response = await fetch(WEB_APP_URL, {
                     method: "POST",
-                    headers: { "Content-Type": "text/plain" }, // Bypass CORS preflight
+                    headers: { "Content-Type": "text/plain" },
                     body: JSON.stringify(dataObject)
                 });
 
@@ -882,21 +873,18 @@
                 if (result.success) {
                     alert("Laporan Kunjungan Berhasil Terkirim!");
                     
-                    // Reset form tapi pertahankan input sistem
                     form.reset();
                     
                     document.getElementById("id_field").value = generateUniqueID();
                     document.getElementById("checkin_field").value = new Date().toLocaleString('id-ID');
                     getLocation();
                     
-                    // Pertahankan sales yang sedang login
                     salesSelect.value = currentUser.name;
                     
                     handleSalesOrVisitChange();
                     toggleSamplingField();
                     toggleClosingFields();
                     
-                    // Muat ulang data terbaru di background
                     setTimeout(loadPreExistingLeads, 1500);
                 } else {
                     alert("Gagal menyimpan: " + result.message);
@@ -907,6 +895,116 @@
             } finally {
                 btn.disabled = false;
                 btn.innerText = "Kirim Laporan Kunjungan";
+            }
+        }
+
+        // ==========================================
+        // FUNGSI KONTROL POPUP JADWAL KUNJUNGAN (HTML)
+        // ==========================================
+        function bukaModalKunjungan() {
+            if (!currentUser) return;
+            
+            document.getElementById("modal_salesman").value = currentUser.name;
+            
+            var dropdownTokoModal = document.getElementById("modal_nama_toko");
+            dropdownTokoModal.innerHTML = `<option value="">-- Pilih Toko Anda --</option>`;
+            
+            var uniqueShops = [];
+            rawDatabase.forEach(row => {
+                var dbSales = (row["Sales"] || row["sales"] || "").toString().trim().toLowerCase();
+                if (dbSales === currentUser.name.toLowerCase()) {
+                    var shopName = (row["Nama Coffee Shop"] || row["nama_coffee_shop"] || "").toString().trim();
+                    var closingStatus = (row["Closing"] || row["closing"] || "on going").toString().trim().toLowerCase();
+                    
+                    if (shopName && closingStatus === "on going" && uniqueShops.indexOf(shopName) === -1) {
+                        uniqueShops.push(shopName);
+                    }
+                }
+            });
+            
+            uniqueShops.sort().forEach(shop => {
+                var opt = document.createElement("option");
+                opt.value = shop;
+                opt.innerText = shop;
+                dropdownTokoModal.appendChild(opt);
+            });
+            
+            document.getElementById("modalJadwalKunjungan").classList.remove("hidden");
+        }
+
+        function tutupModalKunjungan() {
+            document.getElementById("modalJadwalKunjungan").classList.add("hidden");
+            document.getElementById("modal_nama_toko").value = "";
+            document.getElementById("modal_tanggal_kunjungan").value = "";
+            document.getElementById("modal_keperluan").value = "Meeting saja";
+            document.getElementById("modal_keperluan_detail").value = "";
+            document.getElementById("modal_hasil_kunjungan").value = "";
+            document.getElementById("modal_box_keperluan_lainnya").classList.add("hidden");
+        }
+
+        function toggleModalKeperluanLainnya() {
+            var val = document.getElementById("modal_keperluan").value;
+            var box = document.getElementById("modal_box_keperluan_lainnya");
+            if (val === "Lainnya") {
+                box.classList.remove("hidden");
+                document.getElementById("modal_keperluan_detail").required = true;
+            } else {
+                box.classList.add("hidden");
+                document.getElementById("modal_keperluan_detail").required = false;
+            }
+        }
+
+        async function prosesSimpanJadwalKunjungan() {
+            var toko = document.getElementById("modal_nama_toko").value;
+            var tanggal = document.getElementById("modal_tanggal_kunjungan").value;
+            var keperluan = document.getElementById("modal_keperluan").value;
+            
+            if (!toko || !tanggal) {
+                alert("Mohon pilih nama toko dan tanggal rencana kunjungan!");
+                return;
+            }
+            
+            if (keperluan === "Lainnya") {
+                keperluan = document.getElementById("modal_keperluan_detail").value;
+                if (!keperluan) {
+                    alert("Mohon isi detail keperluan lainnya!");
+                    return;
+                }
+            }
+            
+            var btn = document.getElementById("btnSimpanJadwal");
+            btn.disabled = true;
+            btn.innerText = "Menyimpan Rencana...";
+            
+            var payload = {
+                tipeDataForm: "jadwal_kunjungan",
+                salesman: currentUser.name,
+                namaToko: toko,
+                tanggalKunjungan: tanggal,
+                keperluan: keperluan,
+                hasilKunjungan: document.getElementById("modal_hasil_kunjungan").value
+            };
+            
+            try {
+                var response = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify(payload)
+                });
+                
+                var resJson = await response.json();
+                if (resJson.success) {
+                    alert(resJson.message);
+                    tutupModalKunjungan();
+                } else {
+                    alert("Gagal: " + resJson.message);
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Gagal mengirim data rencana kunjungan.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Simpan Jadwal Kunjungan";
             }
         }
     </script>
