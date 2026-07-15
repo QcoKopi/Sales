@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Q.co Coffee Lab - Sales Entry Form</title>
+    <title>Q.co Coffee Lab - Sales Entry Form & Dashboard</title>
     <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -74,19 +74,62 @@
     </div>
 
     <!-- ==========================================
-         SCREEN 2: FORM ENTRY UTAMA
+         SCREEN 2: FORM ENTRY & DASHBOARD UTAMA
          ========================================== -->
     <div id="mainApp" class="max-w-2xl w-full bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-xl shadow-2xl hidden">
         
         <!-- Header -->
         <div class="border-b border-zinc-800 pb-4 mb-6 flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-black tracking-wider text-amber-500">Q.CO SALES ENTRY FORM</h1>
-                <p class="text-xs text-zinc-400 mt-1">Gunakan formulir ini untuk mencatat kunjungan canvassing lapangan.</p>
+                <h1 class="text-xl font-black tracking-wider text-amber-500">Q.CO SALES PORTAL</h1>
+                <p class="text-xs text-zinc-400 mt-1">Selamat bekerja, <span id="salutation_name" class="font-bold text-zinc-200">Sales</span>!</p>
             </div>
             <button onclick="handleLogout()" class="text-xs bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1 rounded transition">
                 Logout
             </button>
+        </div>
+
+        <!-- AREA REMINDER DASHBOARD (DINAMIS SENSITIF SALES) -->
+        <div id="sales_dashboard_section" class="mb-8 p-4 bg-zinc-950 border border-zinc-800 rounded-lg space-y-4">
+            <h2 class="text-xs font-black text-amber-500 tracking-widest uppercase flex items-center gap-2">
+                <span class="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Sales Reminder Dashboard (Prioritas Tindak Lanjut)
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Card 1: Belum Visit 2 -->
+                <div class="bg-zinc-900 p-3 rounded border border-zinc-800">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Belum Visit 2</span>
+                        <span id="badge_count_visit2" class="bg-amber-500/20 text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+                    </div>
+                    <ul id="list_visit2" class="mt-2 text-xs space-y-1 text-zinc-300 divide-y divide-zinc-800/50">
+                        <li class="py-1 text-zinc-500 italic text-[11px]">Memuat data...</li>
+                    </ul>
+                </div>
+
+                <!-- Card 2: Belum Visit 3 -->
+                <div class="bg-zinc-900 p-3 rounded border border-zinc-800">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Belum Visit 3</span>
+                        <span id="badge_count_visit3" class="bg-amber-500/20 text-amber-400 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+                    </div>
+                    <ul id="list_visit3" class="mt-2 text-xs space-y-1 text-zinc-300 divide-y divide-zinc-800/50">
+                        <li class="py-1 text-zinc-500 italic text-[11px]">Memuat data...</li>
+                    </ul>
+                </div>
+
+                <!-- Card 3: Belum Terima Sample -->
+                <div class="bg-zinc-900 p-3 rounded border border-zinc-800">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Belum Kirim Sample</span>
+                        <span id="badge_count_sample" class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+                    </div>
+                    <ul id="list_sample" class="mt-2 text-xs space-y-1 text-zinc-300 divide-y divide-zinc-800/50">
+                        <li class="py-1 text-zinc-500 italic text-[11px]">Memuat data...</li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
         <!-- Form Element -->
@@ -409,6 +452,8 @@
             document.getElementById("loginScreen").classList.add("hidden");
             document.getElementById("mainApp").classList.remove("hidden");
             
+            document.getElementById("salutation_name").innerText = currentUser.name;
+            
             const salesSelect = document.getElementById("sales");
             salesSelect.value = currentUser.name;
             
@@ -452,12 +497,151 @@
                         return shop !== "" && sales !== "";
                     });
 
+                    // 1. Update list dropdown form berdasarkan pilihan sales & visit
                     handleSalesOrVisitChange(); 
+                    
+                    // 2. Render UI Dashboard Reminder khusus Sales yang login
+                    renderSalesDashboard();
                 }
             } catch (e) {
                 console.error("Gagal memuat database: ", e);
                 document.getElementById("coffee_shop_select").innerHTML = `<option value="">-- Gagal Sinkron (Reload Halaman) --</option>`;
             }
+        }
+
+        // ==========================================
+        // FUNGSI UTAMA RENDER REMINDER DASHBOARD
+        // ==========================================
+        function renderSalesDashboard() {
+            if (!currentUser || rawDatabase.length === 0) return;
+
+            const salesVal = currentUser.name;
+            const history = {};
+
+            // Urutkan database dari yang terlama ke terbaru (FIFO) berdasarkan indeks baris asli
+            // karena Google Sheets menyimpan data secara kronologis (baris awal adalah yang terlama)
+            rawDatabase.forEach((row, index) => {
+                const dbSales = (row["Sales"] || row["sales"] || "").toString().trim().toLowerCase();
+                if (dbSales !== salesVal.toLowerCase()) return;
+
+                const shopName = (row["Nama Coffee Shop"] || row["nama_coffee_shop"] || "").toString().trim();
+                const visitType = (row["Visit Ke"] || row["visit_ke"] || "").toString().trim().toLowerCase();
+                const closingStatus = (row["Closing"] || row["closing"] || "on going").toString().trim().toLowerCase();
+                const dateStr = (row["Tanggal"] || row["tanggal"] || "").toString().trim();
+                const wantsSample = (row["Sampling"] || row["sampling"] || "").toString().trim().toLowerCase();
+
+                if (!shopName) return;
+
+                if (!history[shopName]) {
+                    history[shopName] = {
+                        shopName: shopName,
+                        hasPertama: false,
+                        hasKedua: false,
+                        hasKetiga: false,
+                        lastClosingStatus: "on going",
+                        firstVisitDate: dateStr,
+                        secondVisitDate: "",
+                        thirdVisitDate: "",
+                        originalIndex: index, // Prioritas pengurutan
+                        sampleStatus: "tidak" // Default
+                    };
+                }
+
+                if (visitType === "pertama") {
+                    history[shopName].hasPertama = true;
+                    if (dateStr) history[shopName].firstVisitDate = dateStr;
+                    if (wantsSample === "ya") history[shopName].sampleStatus = "butuh_kirim";
+                }
+                if (visitType === "kedua") {
+                    history[shopName].hasKedua = true;
+                    if (dateStr) history[shopName].secondVisitDate = dateStr;
+                    // Jika di visit kedua dikirim sample, maka status sample terpenuhi
+                    if (wantsSample === "ya") history[shopName].sampleStatus = "terkirim";
+                }
+                if (visitType === "ketiga") {
+                    history[shopName].hasKetiga = true;
+                    if (dateStr) history[shopName].thirdVisitDate = dateStr;
+                    if (wantsSample === "ya") history[shopName].sampleStatus = "terkirim";
+                }
+
+                if (closingStatus !== "") {
+                    history[shopName].lastClosingStatus = closingStatus;
+                }
+            });
+
+            // Klasifikasikan toko ke masing-masing kategori reminder
+            const yetToVisit2 = [];
+            const yetToVisit3 = [];
+            const yetToReceiveSample = [];
+
+            for (const [shopName, info] of Object.entries(history)) {
+                // Abaikan jika toko sudah Deal (Closing) atau Gagal (Stop)
+                if (info.lastClosingStatus !== "on going") continue;
+
+                // 1. Belum Visit Ke-2: Baru ada Visit 1, belum ada Visit 2 maupun 3
+                if (info.hasPertama && !info.hasKedua && !info.hasKetiga) {
+                    yetToVisit2.push(info);
+                }
+
+                // 2. Belum Visit Ke-3: Sudah Visit 1 dan 2, tapi belum Visit 3
+                if (info.hasPertama && info.hasKedua && !info.hasKetiga) {
+                    yetToVisit3.push(info);
+                }
+
+                // 3. Belum Kirim Sample: Di Visit 1 minta sample, tapi di database/kunjungan berikutnya belum tercatat terealisasi
+                if (info.sampleStatus === "butuh_kirim") {
+                    yetToReceiveSample.push(info);
+                }
+            }
+
+            // Urutkan berdasarkan index terkecil (data terlama masuk duluan)
+            const sortFn = (a, b) => a.originalIndex - b.originalIndex;
+            yetToVisit2.sort(sortFn);
+            yetToVisit3.sort(sortFn);
+            yetToReceiveSample.sort(sortFn);
+
+            // Tampilkan jumlah total badge
+            document.getElementById("badge_count_visit2").innerText = yetToVisit2.length;
+            document.getElementById("badge_count_visit3").innerText = yetToVisit3.length;
+            document.getElementById("badge_count_sample").innerText = yetToReceiveSample.length;
+
+            // Render 5 list terlama untuk masing-masing card
+            renderListHelper("list_visit2", yetToVisit2.slice(0, 5), "firstVisitDate");
+            renderListHelper("list_visit3", yetToVisit3.slice(0, 5), "secondVisitDate");
+            renderListHelper("list_sample", yetToReceiveSample.slice(0, 5), "firstVisitDate");
+        }
+
+        // Helper untuk mencetak list li di dashboard
+        function renderListHelper(elementId, items, dateField) {
+            const ul = document.getElementById(elementId);
+            ul.innerHTML = "";
+
+            if (items.length === 0) {
+                ul.innerHTML = `<li class="py-2 text-zinc-500 italic text-[11px] text-center">Semua aman! Tidak ada tanggungan.</li>`;
+                return;
+            }
+
+            items.forEach(item => {
+                const li = document.createElement("li");
+                li.className = "py-1.5 flex justify-between items-center text-[11px] hover:bg-zinc-850 px-1 rounded transition";
+                
+                // Format tanggal manis jika ada
+                let displayDate = "";
+                if (item[dateField]) {
+                    const d = new Date(item[dateField]);
+                    if (!isNaN(d.getTime())) {
+                        displayDate = d.toLocaleDateString('id-ID', {day: 'numeric', month: 'short'});
+                    } else {
+                        displayDate = item[dateField];
+                    }
+                }
+
+                li.innerHTML = `
+                    <span class="font-semibold text-zinc-200 truncate max-w-[120px]" title="${item.shopName}">${item.shopName}</span>
+                    <span class="text-zinc-500 font-mono text-[10px] flex-shrink-0">${displayDate}</span>
+                `;
+                ul.appendChild(li);
+            });
         }
 
         function handleSalesOrVisitChange() {
