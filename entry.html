@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Q.co Coffee Lab - Sales Entry Form & Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -32,7 +33,7 @@
             </div>
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Password *</label>
-                <input type="password" id="login_password" required placeholder="Masukkan password default"
+                <input type="password" id="login_password" required placeholder="Masukkan password"
                        class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500">
             </div>
             <button type="submit" id="btnLogin"
@@ -136,7 +137,7 @@
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Tanggal Kunjungan *</label>
                     <input type="date" id="tanggal" name="Tanggal" required 
-                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 font-mono">
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 font-mono font-bold">
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Nama Sales *</label>
@@ -212,7 +213,7 @@
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">No. Telp PIC *</label>
                         <input type="tel" id="telp_pic" name="Telp PIC" placeholder="08xxxxxxxxxx"
-                               class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 font-mono">
+                               class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 font-mono font-bold">
                     </div>
                 </div>
 
@@ -297,12 +298,12 @@
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Jumlah Pembelian (kg) *</label>
                     <input type="number" id="jumlah" name="Jumlah " placeholder="0"
-                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500">
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500 font-bold">
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Harga per kg (Rp) *</label>
                     <input type="number" id="harga" name="Harga" placeholder="0"
-                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500">
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500 font-bold">
                 </div>
             </div>
 
@@ -321,9 +322,6 @@
         </form>
     </div>
 
-    <!-- ==========================================
-         MODAL JADWAL KUNJUNGAN INTERNAL (TAILWIND STYLE)
-         ========================================== -->
     <div id="modalJadwalKunjungan" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
         <div class="max-w-md w-full bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-2xl relative">
             <span onclick="tutupModalKunjungan()" class="absolute top-3 right-4 text-zinc-400 hover:text-white text-xl cursor-pointer font-bold">&times;</span>
@@ -349,7 +347,7 @@
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Tanggal Rencana Kunjungan *</label>
                     <input type="date" id="modal_tanggal_kunjungan" required
-                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 font-mono">
+                           class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 font-mono font-bold">
                 </div>
 
                 <div>
@@ -382,31 +380,33 @@
         </div>
     </div>
 
-    <!-- ==========================================
-         MODAL PROFILE SALES DIGITAL & SHARE WA (NEW)
-         ========================================== -->
     <div id="modalProfileSales" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
-        <div class="max-w-md w-full bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-2xl relative">
+        <div class="max-w-md w-full bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <span onclick="tutupModalProfile()" class="absolute top-3 right-4 text-zinc-400 hover:text-white text-xl cursor-pointer font-bold">&times;</span>
             
             <div class="text-center mb-4 border-b border-zinc-800 pb-3">
                 <h2 class="text-xs font-black tracking-widest text-zinc-400 uppercase">Q.co Coffee Lab & Roastery</h2>
-                <h1 class="text-lg font-black text-amber-500 uppercase tracking-wider">OFFICIAL SALES PROFILE</h1>
+                <h1 class="text-lg font-black text-amber-500 uppercase tracking-wider">Q.co Official Sales Profile</h1>
             </div>
 
             <div class="space-y-4">
-                <div class="bg-zinc-950 p-4 rounded-lg border border-zinc-800 space-y-3">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 bg-amber-600 text-zinc-950 font-black flex items-center justify-center rounded-full text-lg uppercase shadow">
-                            <span id="profile_initials">SL</span>
+                <div class="bg-zinc-950 p-4 rounded-lg border border-zinc-800 space-y-3 shadow-lg relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl"></div>
+                    
+                    <div class="flex items-center gap-4">
+                        <div class="relative w-16 h-16 rounded-full border-2 border-amber-500 bg-zinc-900 overflow-hidden flex-shrink-0 flex items-center justify-center shadow-md">
+                            <img id="profile_photo_preview" src="" alt="Profile Photo" class="w-full h-full object-cover hidden">
+                            <span id="profile_avatar_fallback" class="font-black text-xl text-amber-500 uppercase">SL</span>
                         </div>
+                        
                         <div>
-                            <h3 id="profile_display_name" class="font-extrabold text-base text-zinc-100">Nama Sales</h3>
-                            <p class="text-xs text-amber-500 font-bold uppercase tracking-wider">Jabatan: Salesman</p>
+                            <h3 id="profile_display_name" class="font-extrabold text-lg text-zinc-100 tracking-wide">Nama Sales</h3>
+                            <p class="text-xs text-amber-500 font-bold uppercase tracking-widest">Jabatan: Salesman</p>
+                            <p class="text-[10px] text-zinc-500 uppercase font-mono mt-0.5">Q.co Authorized Member</p>
                         </div>
                     </div>
                     
-                    <div class="text-xs space-y-1 text-zinc-400 border-t border-zinc-900 pt-2 font-mono">
+                    <div class="text-xs space-y-1 text-zinc-400 border-t border-zinc-900 pt-2.5 font-mono">
                         <p class="flex justify-between">
                             <span>No. WhatsApp:</span> 
                             <span id="profile_display_wa" class="text-zinc-200 font-bold">Belum disetel</span>
@@ -414,17 +414,23 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Atur / Ubah Nomor WA Sales *</label>
-                    <input type="tel" id="profile_input_wa" placeholder="08xxxxxxxxxx" oninput="regenerateProfileCard()"
-                           class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-amber-500 font-mono text-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-zinc-950 p-3 rounded-lg border border-zinc-800">
+                    <div>
+                        <label class="block text-[9px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">No. WA Sales *</label>
+                        <input type="tel" id="profile_input_wa" placeholder="08xxxxxxxxxx" oninput="regenerateProfileCard()"
+                               class="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-zinc-100 focus:outline-none focus:border-amber-500 font-mono text-xs font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">Foto Profil *</label>
+                        <input type="file" id="profile_input_photo" accept="image/*" onchange="processProfilePhoto(event)"
+                               class="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-400 focus:outline-none focus:border-amber-500 text-xs">
+                    </div>
                 </div>
 
                 <div class="flex flex-col items-center bg-zinc-950 p-4 rounded-lg border border-zinc-800">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-3 text-center">Scan QR Code untuk Chat WA Langsung</span>
-                    <div id="qrcode_container" class="bg-white p-3 rounded-lg flex items-center justify-center shadow-inner">
-                        <!-- QR Code akan digenerate otomatis -->
-                        <img id="qrcode_img" src="" alt="QR Code Link WA" class="w-32 h-32 select-none">
+                    <div class="bg-white p-3 rounded-lg shadow-inner">
+                        <div id="qrcode_local_box" class="w-32 h-32 flex items-center justify-center"></div>
                     </div>
                     <a id="profile_link_anchor" href="#" target="_blank" class="text-xs text-amber-500 hover:text-amber-400 font-bold mt-3 font-mono underline">
                         wa.me (Link Terbuka)
@@ -433,9 +439,9 @@
 
                 <div class="border-t border-zinc-800 pt-4 space-y-3">
                     <div>
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Kirim Kartu Nama Digital ke Leads (No WA Leads) *</label>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2">Kirim Kartu Nama Digital ke Leads (No WA Leads) *</label>
                         <input type="tel" id="lead_destination_wa" placeholder="Masukkan nomor WA klien (08...)"
-                               class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500 font-mono text-sm">
+                               class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500 font-mono text-sm font-bold">
                     </div>
                     <button onclick="shareProfileToLead()"
                             class="w-full bg-emerald-600 hover:bg-emerald-500 text-zinc-950 font-black uppercase tracking-wider py-3 rounded transition duration-150 flex items-center justify-center gap-2 text-sm">
@@ -975,24 +981,24 @@
             
             document.getElementById("modal_salesman").value = currentUser.name;
             
-            var dropdownTokoModal = document.getElementById("modal_nama_toko");
+            const dropdownTokoModal = document.getElementById("modal_nama_toko");
             dropdownTokoModal.innerHTML = `<option value="">-- Pilih Toko Anda --</option>`;
             
-            var uniqueShops = [];
+            const uniqueShops = [];
             rawDatabase.forEach(row => {
-                var dbSales = (row["Sales"] || row["sales"] || "").toString().trim().toLowerCase();
+                const dbSales = (row["Sales"] || row["sales"] || "").toString().trim().toLowerCase();
                 if (dbSales === currentUser.name.toLowerCase()) {
-                    var shopName = (row["Nama Coffee Shop"] || row["nama_coffee_shop"] || "").toString().trim();
-                    var closingStatus = (row["Closing"] || row["closing"] || "on going").toString().trim().toLowerCase();
+                    const shopName = (row["Nama Coffee Shop"] || row["nama_coffee_shop"] || "").toString().trim();
+                    const closingStatus = (row["Closing"] || row["closing"] || "on going").toString().trim().toLowerCase();
                     
-                    if (shopName && closingStatus === "on going" && uniqueShops.indexOf(shopName) === -1) {
+                    if (shopName && closingStatus === "on going" && !uniqueShops.includes(shopName)) {
                         uniqueShops.push(shopName);
                     }
                 }
             });
             
             uniqueShops.sort().forEach(shop => {
-                var opt = document.createElement("option");
+                const opt = document.createElement("option");
                 opt.value = shop;
                 opt.innerText = shop;
                 dropdownTokoModal.appendChild(opt);
@@ -1012,8 +1018,8 @@
         }
 
         function toggleModalKeperluanLainnya() {
-            var val = document.getElementById("modal_keperluan").value;
-            var box = document.getElementById("modal_box_keperluan_lainnya");
+            const val = document.getElementById("modal_keperluan").value;
+            const box = document.getElementById("modal_box_keperluan_lainnya");
             if (val === "Lainnya") {
                 box.classList.remove("hidden");
                 document.getElementById("modal_keperluan_detail").required = true;
@@ -1024,9 +1030,9 @@
         }
 
         async function prosesSimpanJadwalKunjungan() {
-            var toko = document.getElementById("modal_nama_toko").value;
-            var tanggal = document.getElementById("modal_tanggal_kunjungan").value;
-            var keperluan = document.getElementById("modal_keperluan").value;
+            const toko = document.getElementById("modal_nama_toko").value;
+            const tanggal = document.getElementById("modal_tanggal_kunjungan").value;
+            let keperluan = document.getElementById("modal_keperluan").value;
             
             if (!toko || !tanggal) {
                 alert("Mohon pilih nama toko dan tanggal rencana kunjungan!");
@@ -1041,11 +1047,11 @@
                 }
             }
             
-            var btn = document.getElementById("btnSimpanJadwal");
+            const btn = document.getElementById("btnSimpanJadwal");
             btn.disabled = true;
             btn.innerText = "Menyimpan Rencana...";
             
-            var payload = {
+            const payload = {
                 tipeDataForm: "jadwal_kunjungan",
                 salesman: currentUser.name,
                 namaToko: toko,
@@ -1055,13 +1061,13 @@
             };
             
             try {
-                var response = await fetch(WEB_APP_URL, {
+                const response = await fetch(WEB_APP_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain" },
                     body: JSON.stringify(payload)
                 });
                 
-                var resJson = await response.json();
+                const resJson = await response.json();
                 if (resJson.success) {
                     alert(resJson.message);
                     tutupModalKunjungan();
@@ -1078,34 +1084,70 @@
         }
 
         // ==========================================
-        // FUNGSI BARU MODAL PROFILE SALES & INTEGRASI WA
+        // PROSES DIGITAL PROFILE & SHARE WA (STANDAR & VALID)
         // ==========================================
         function formatUntukInternationalWA(nomorAsli) {
-            var bersih = nomorAsli.replace(/\D/g, "");
-            if (bersih.indexOf("0") === 0) {
+            let bersih = nomorAsli.replace(/\D/g, "");
+            if (bersih.startsWith("0")) {
                 bersih = "62" + bersih.substring(1);
             }
             return bersih;
         }
 
+        function processProfilePhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result;
+                const namaSales = currentUser.name;
+                
+                // Simpan foto di memori browser local storage
+                localStorage.setItem("qco_sales_photo_" + namaSales, base64Data);
+                
+                tampilkanFotoProfil(base64Data);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function tampilkanFotoProfil(base64Data) {
+            const preview = document.getElementById("profile_photo_preview");
+            const fallback = document.getElementById("profile_avatar_fallback");
+            
+            if (base64Data) {
+                preview.src = base64Data;
+                preview.classList.remove("hidden");
+                fallback.classList.add("hidden");
+            } else {
+                preview.src = "";
+                preview.classList.add("hidden");
+                fallback.classList.remove("hidden");
+            }
+        }
+
         function bukaModalProfile() {
             if (!currentUser) return;
             
-            var namaSales = currentUser.name;
+            const namaSales = currentUser.name;
             document.getElementById("profile_display_name").innerText = namaSales;
             
-            var initial = "";
-            var parts = namaSales.split(" ");
+            let initial = "";
+            const parts = namaSales.split(" ");
             if (parts.length > 0 && parts[0]) initial += parts[0].substring(0, 1);
             if (parts.length > 1 && parts[1]) initial += parts[1].substring(0, 1);
             if (initial === "") initial = "SL";
-            document.getElementById("profile_initials").innerText = initial.toUpperCase();
+            document.getElementById("profile_avatar_fallback").innerText = initial.toUpperCase();
             
-            var localStoredWA = localStorage.getItem("qco_sales_wa_" + namaSales) || "";
+            // Load foto profil dari Local Storage
+            const storedPhoto = localStorage.getItem("qco_sales_photo_" + namaSales) || "";
+            tampilkanFotoProfil(storedPhoto);
+            
+            // Load Nomor WA dari Local Storage
+            const localStoredWA = localStorage.getItem("qco_sales_wa_" + namaSales) || "";
             document.getElementById("profile_input_wa").value = localStoredWA;
             
             regenerateProfileCard();
-            
             document.getElementById("modalProfileSales").classList.remove("hidden");
         }
 
@@ -1115,51 +1157,60 @@
         }
 
         function regenerateProfileCard() {
-            var namaSales = currentUser.name;
-            var nomorWA = document.getElementById("profile_input_wa").value.trim();
-            var displaySpan = document.getElementById("profile_display_wa");
-            var qrImg = document.getElementById("qrcode_img");
-            var anchor = document.getElementById("profile_link_anchor");
+            const namaSales = currentUser.name;
+            const nomorWA = document.getElementById("profile_input_wa").value.trim();
+            const displaySpan = document.getElementById("profile_display_wa");
+            const anchor = document.getElementById("profile_link_anchor");
+            const qrBox = document.getElementById("qrcode_local_box");
+            
+            qrBox.innerHTML = ""; // Bersihkan QR Code lama
             
             if (nomorWA !== "") {
                 localStorage.setItem("qco_sales_wa_" + namaSales, nomorWA);
                 displaySpan.innerText = nomorWA;
                 
-                var formatWA = formatUntukInternationalWA(nomorWA);
-                var rawTextLink = "https:wa.me" + formatWA;
+                const formatWA = formatUntukInternationalWA(nomorWA);
+                const fullWaLink = `https://wa.me/${formatWA}`;
                 
-                anchor.href = rawTextLink;
-                anchor.innerText = "wa.me" + formatWA;
+                anchor.href = fullWaLink;
+                anchor.innerText = `wa.me/${formatWA}`;
                 
-                var safeUrlEncoded = encodeURIComponent(rawTextLink);
-                qrImg.src = "https:api.qrserver.comv1create-qr-code?size=150x150&data=" + safeUrlEncoded;
+                // Menghasilkan QR Code secara offline / lokal tanpa hit API eksternal
+                new QRCode(qrBox, {
+                    text: fullWaLink,
+                    width: 128,
+                    height: 128,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
             } else {
                 displaySpan.innerText = "Belum disetel";
                 anchor.href = "#";
                 anchor.innerText = "Nomor WA kosong";
-                qrImg.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><rect width='150' height='150' fill='%2327272a'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%2371717a' font-size='10'>QR Code Kosong</text></svg>";
+                qrBox.innerHTML = "<span class='text-zinc-600 text-xs text-center font-mono'>QR Kosong</span>";
             }
         }
 
         function shareProfileToLead() {
-            var nomorWA = document.getElementById("profile_input_wa").value.trim();
+            const nomorWA = document.getElementById("profile_input_wa").value.trim();
             if (nomorWA === "") {
                 alert("Mohon atur nomor WA Anda terlebih dahulu!");
                 return;
             }
             
-            var leadWAInput = document.getElementById("lead_destination_wa").value.trim();
+            const leadWAInput = document.getElementById("lead_destination_wa").value.trim();
             if (leadWAInput === "") {
                 alert("Mohon isi nomor WhatsApp klien / leads tujuan!");
                 return;
             }
             
-            var waSalesFormatted = formatUntukInternationalWA(nomorWA);
-            var waLeadFormatted = formatUntukInternationalWA(leadWAInput);
+            const waSalesFormatted = formatUntukInternationalWA(nomorWA);
+            const waLeadFormatted = formatUntukInternationalWA(leadWAInput);
             
-            var teksPesan = "Halo, salam kenal!\n\nSaya *" + currentUser.name + "* (Salesman dari *Q.co Coffee Lab & Roastery*).\n\nBerikut adalah kontak resmi WhatsApp saya yang dapat Anda hubungi sewaktu-waktu:\n👉 https:wa.me" + waSalesFormatted + "\n\nTerima kasih, semoga kita bisa berkolaborasi dengan baik!";
-            var urlKirim = "https:api.whatsapp.comsend?phone=" + waLeadFormatted + "&text=" + encodeURIComponent(teksPesan);
+            const teksPesan = `Halo, salam kenal!\n\nSaya *${currentUser.name}* (Salesman dari *Q.co Coffee Lab & Roastery*).\n\nBerikut adalah kontak resmi WhatsApp saya yang dapat Anda hubungi sewaktu-waktu:\n👉 https://wa.me/${waSalesFormatted}\n\nTerima kasih, semoga kita bisa berkolaborasi dengan baik!`;
             
+            const urlKirim = `https://api.whatsapp.com/send?phone=${waLeadFormatted}&text=${encodeURIComponent(teksPesan)}`;
             window.open(urlKirim, "_blank");
         }
     </script>
