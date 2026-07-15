@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Q.co Coffee Lab - Leads Manager</title>
-    <!-- Tailwind CSS v3 (Stabil, Cepat & Bebas Hambatan) -->
+    <!-- Tailwind CSS v3 (Stabil, Cepat & Ringan) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -72,7 +72,7 @@
                         </tr>
                     </thead>
                     <tbody id="leads-table-body" class="divide-y divide-zinc-800 text-sm">
-                        <!-- Data rows akan dimasukkan secara dinamis -->
+                        <!-- Data rows akan dimasukkan di sini oleh JS -->
                     </tbody>
                 </table>
             </div>
@@ -80,48 +80,38 @@
     </div>
 
     <script>
-        // URL Google Apps Script Riil Anda
+        // Menggunakan URL Google Apps Script Anda secara langsung
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNuh-E6Lutp5jC5_25YAvF2e_4fk2O7AzdbU_Sa3CSOFs2SmhhzC5urEgvsQt7hAQ/exec";
 
-        function fetchLeadsData() {
+        async function fetchLeadsData() {
             const loading = document.getElementById("loading-indicator");
+            const tbody = document.getElementById("leads-table-body");
+            
             loading.classList.remove("hidden");
             loading.innerText = "Memuat data dari Google Sheets...";
 
-            // Menggunakan pendekatan Script Injection untuk menghindari CORS di platform statis seperti GitHub Pages
-            const oldScript = document.getElementById("gas-script");
-            if (oldScript) oldScript.remove();
-
-            const script = document.createElement("script");
-            script.id = "gas-script";
-            script.src = `${WEB_APP_URL}?callback=handleGASResponse`;
-            
-            script.onerror = function() {
-                loading.innerText = "Gagal memuat data sheet. Periksa status Deployment GAS Anda.";
-                loading.classList.remove("text-amber-500");
-                loading.classList.add("text-rose-500");
-            };
-            
-            document.body.appendChild(script);
-        }
-
-        // Fungsi Callback Global untuk menangkap data dari GAS Bridge
-        window.handleGASResponse = function(rawData) {
-            const loading = document.getElementById("loading-indicator");
-            const tbody = document.getElementById("leads-table-body");
-
             try {
-                // Filter baris kosong agar database bersih
+                // Trik Utama: "redirect: 'follow'" memaksa browser mengikuti pengalihan server Google yang aman
+                const response = await fetch(WEB_APP_URL, {
+                    method: "GET",
+                    redirect: "follow"
+                });
+                
+                if (!response.ok) throw new Error("Gagal mengambil respon dari GAS");
+                
+                const rawData = await response.json();
+                
+                // Filter baris yang tidak memiliki nama coffee shop agar data tetap bersih
                 const data = rawData.filter(item => item["Nama Coffee Shop"] && String(item["Nama Coffee Shop"]).trim() !== "");
                 
-                // Urutkan dari data entri paling baru
+                // Urutkan data berdasarkan input terbaru
                 data.reverse();
 
-                // Perhitungan Metrik Ringkas
+                // Hitung Metrik Ringkas
                 let totalLeads = data.length;
                 let totalClosing = data.filter(item => String(item["Closing"]).toLowerCase().includes("closing")).length;
                 let totalOnGoing = data.filter(item => {
-                    const status = String(item["Closing"]).toLowerCase();
+                    const status = String(item["Closing"] || "On Going").toLowerCase();
                     return status.includes("go") || status.trim() === "" || status.includes("ongoing");
                 }).length;
 
@@ -133,7 +123,7 @@
                 tbody.innerHTML = "";
                 data.forEach(item => {
                     const row = document.createElement("tr");
-                    row.className = "hover:bg-zinc-850 transition-colors border-b border-zinc-800";
+                    row.className = "hover:bg-zinc-800/50 transition-colors border-b border-zinc-800";
 
                     let statusBadge = "";
                     const statusVal = String(item["Closing"] || "On Going").trim();
@@ -145,7 +135,16 @@
                         statusBadge = `<span class="px-2 py-0.5 text-xs font-semibold rounded bg-amber-950 text-amber-400 border border-amber-800">On Going</span>`;
                     }
 
-                    let formatTanggal = item["Tanggal"] ? new Date(item["Tanggal"]).toLocaleDateString('id-ID') : '-';
+                    // Format Tanggal
+                    let formatTanggal = "-";
+                    if (item["Tanggal"]) {
+                        const parsedDate = new Date(item["Tanggal"]);
+                        if (!isNaN(parsedDate)) {
+                            formatTanggal = parsedDate.toLocaleDateString('id-ID');
+                        } else {
+                            formatTanggal = item["Tanggal"]; // fallback jika format teks unik
+                        }
+                    }
 
                     row.innerHTML = `
                         <td class="p-4 text-zinc-400 font-mono">${formatTanggal}</td>
@@ -167,13 +166,15 @@
                 });
 
                 loading.classList.add("hidden");
-            } catch (err) {
-                console.error(err);
-                loading.innerText = "Gagal memproses struktur data dari Google Sheets.";
+            } catch (error) {
+                console.error("Error Detail:", error);
+                loading.innerText = "Gagal memuat data sheet. Pastikan Anda telah men-deploy ulang GAS sebagai 'New Version'.";
+                loading.classList.remove("text-amber-500");
+                loading.classList.add("text-rose-500");
             }
-        };
+        }
 
-        // Memuat data secara otomatis saat halaman web siap
+        // Panggil saat halaman siap
         window.addEventListener("DOMContentLoaded", fetchLeadsData);
     </script>
 </body>
