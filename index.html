@@ -1435,7 +1435,7 @@ function applyDashboardFilter() {
     }
   });
 
-  const needV2 = [], needV3 = [];
+  const needV2 = [], needV3 = [], v3Ongoing = [];
   Object.entries(shops).forEach(([name, info]) => {
     if (info.status === 'stop') return;
     const hasV1 = info.visits.has('Pertama');
