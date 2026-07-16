@@ -399,6 +399,8 @@
                                 <th class="px-4 py-3">Status</th>
                                 <th class="px-4 py-3">Bahan Espresso</th>
                                 <th class="px-4 py-3">Kapasitas/Bln</th>
+                                <th class="px-4 py-3">Alasan Belum Visit</th>
+                                <th class="px-4 py-3">Jeda Sampai</th>
                                 <th class="px-4 py-3">AI Keterangan</th>
                                 <th class="px-4 py-3">AI Alasan V2</th>
                                 <th class="px-4 py-3">AI Alasan V3</th>
@@ -458,12 +460,12 @@
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Estimasi Tunda (hari)</label>
                     <select id="skip_estimasi" class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-500">
-                        <option value="7">7 hari</option>
-                        <option value="14" selected>14 hari</option>
-                        <option value="30">30 hari</option>
-                        <option value="60">60 hari</option>
+                        <option value="7" selected>7 hari (1 minggu)</option>
+                        <option value="14">14 hari (2 minggu)</option>
+                        <option value="30">30 hari (1 bulan)</option>
+                        <option value="60">60 hari (2 bulan)</option>
                     </select>
-                    <p class="text-[10px] text-zinc-500 mt-1">Reminder WA tidak akan dikirim selama periode ini.</p>
+                    <p class="text-[10px] text-zinc-500 mt-1">Reminder akan dijeda selama periode ini. Setelah itu, reminder aktif kembali.</p>
                 </div>
 
                 <button onclick="simpanAlasanSkip()" id="btnSimpanSkip"
@@ -1281,8 +1283,6 @@
             const search = document.getElementById("searchTable").value.toLowerCase();
 
             // DEDUPLIKASI: Build profile per unique coffee shop
-            // Profile (Area, PIC, Telp, Bahan, dll) hanya ada di Visit 1
-            // Status Visit = visit TERAKHIR yang ada
             const shopProfiles = {};
 
             data.forEach(row => {
@@ -1290,10 +1290,7 @@
                 const sales = String(row["Sales"] || "").trim();
                 if (!shop) return;
 
-                // Filter by sales
                 if (salesFilter !== "ALL" && sales !== salesFilter) return;
-
-                // Filter by search
                 if (search && !shop.toLowerCase().includes(search)) return;
 
                 const visit = String(row["Visit Ke"] || "").trim();
@@ -1304,19 +1301,22 @@
                         sales: sales,
                         visits: new Set(),
                         status: closing,
-                        profile: {},      // Data dari Visit 1
-                        latestVisit: null, // Visit terakhir
+                        profile: {},
+                        latestVisit: null,
                         latestDate: null,
                         aiKeterangan: null,
                         aiAlasan2: null,
-                        aiAlasan3: null
+                        aiAlasan3: null,
+                        skipReason: null,
+                        skipUntil: null,
+                        skipId: null
                     };
                 }
 
                 shopProfiles[shop].visits.add(visit);
                 if (closing === 'stop') shopProfiles[shop].status = 'stop';
 
-                // Ambil profile HANYA dari Visit 1 (Pertama)
+                // Profile HANYA dari Visit 1
                 if (visit === 'Pertama') {
                     shopProfiles[shop].profile = {
                         area: row["Area"] || '',
@@ -1334,32 +1334,31 @@
                 const alasan2 = String(row["Alasan visit ke 2"] || "").trim();
                 const alasan3 = String(row["Alasan Visit ke 3"] || "").trim();
 
-                if (keterangan && keterangan !== '-') {
+                if (keterangan && keterangan !== '-' && keterangan !== '') {
                     const result = analyzeText(keterangan, 'keterangan');
-                    if (result.category !== 'Tidak Ada Keterangan') {
+                    if (result.category !== 'Tidak Ada Keterangan' && result.category !== 'Lainnya') {
                         shopProfiles[shop].aiKeterangan = result.category;
                     }
                 }
-                if (alasan2 && alasan2 !== '-') {
+                if (alasan2 && alasan2 !== '-' && alasan2 !== '') {
                     const result = analyzeText(alasan2, 'alasan2');
-                    if (result.category !== 'Tidak Ada Keterangan') {
+                    if (result.category !== 'Tidak Ada Keterangan' && result.category !== 'Lainnya') {
                         shopProfiles[shop].aiAlasan2 = result.category;
                     }
                 }
-                if (alasan3 && alasan3 !== '-') {
+                if (alasan3 && alasan3 !== '-' && alasan3 !== '') {
                     const result = analyzeText(alasan3, 'alasan3');
-                    if (result.category !== 'Tidak Ada Keterangan') {
+                    if (result.category !== 'Tidak Ada Keterangan' && result.category !== 'Lainnya') {
                         shopProfiles[shop].aiAlasan3 = result.category;
                     }
                 }
 
-                // Track visit terakhir (Ketiga > Kedua > Pertama)
+                // Track visit terakhir
                 const d = parseDate(row["Tanggal"]);
                 if (!shopProfiles[shop].latestDate || (d && d > shopProfiles[shop].latestDate)) {
                     shopProfiles[shop].latestDate = d;
                     shopProfiles[shop].latestVisit = visit;
                 }
-                // Jika tanggal sama, prioritaskan visit yang lebih tinggi
                 if (d && shopProfiles[shop].latestDate && d.getTime() === shopProfiles[shop].latestDate.getTime()) {
                     const visitRank = { 'Pertama': 1, 'Kedua': 2, 'Ketiga': 3, 'Maksimal 3 kali Visit': 4 };
                     const currentRank = visitRank[shopProfiles[shop].latestVisit] || 0;
@@ -1370,20 +1369,30 @@
                 }
             });
 
-            // Convert to array and sort by latest visit date descending
-            const shops = Object.entries(shopProfiles).map(([name, info]) => ({
-                name, ...info
-            }));
+            // Merge with skip data
+            const today = new Date();
+            Object.keys(shopProfiles).forEach(shop => {
+                const skip = skipDataCache.find(s => 
+                    s.CoffeeShop === shop && 
+                    s.Status === 'Aktif' && 
+                    new Date(s.UntilDate) >= today
+                );
+                if (skip) {
+                    shopProfiles[shop].skipReason = skip.Alasan;
+                    shopProfiles[shop].skipUntil = new Date(skip.UntilDate);
+                    shopProfiles[shop].skipId = skip.ID;
+                }
+            });
 
+            // Convert to array and sort
+            const shops = Object.entries(shopProfiles).map(([name, info]) => ({ name, ...info }));
             shops.sort((a, b) => (b.latestDate || 0) - (a.latestDate || 0));
 
             tbody.innerHTML = shops.slice(0, 100).map(info => {
                 const p = info.profile;
                 const status = info.status === 'stop' ? 'Stop' : 'On Going';
 
-                const statusBadge = status === 'Closing' 
-                    ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">Closing</span>`
-                    : status === 'Stop'
+                const statusBadge = status === 'Stop'
                     ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-800">Stop</span>`
                     : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-800">On Going</span>`;
 
@@ -1391,6 +1400,36 @@
                 const visitBadge = visit === 'Pertama' ? 'bg-zinc-800 text-zinc-300' 
                     : visit === 'Kedua' ? 'bg-amber-950/50 text-amber-400' 
                     : 'bg-pink-950/50 text-pink-400';
+
+                // AI Analysis
+                const aiKet = info.aiKeterangan || '-';
+                const aiV2 = info.aiAlasan2 || '-';
+                const aiV3 = info.aiAlasan3 || '-';
+                const aiBadge = (text) => text === '-' ? 'text-zinc-600' : 'text-emerald-400';
+
+                // Skip Reason
+                const hasSkip = info.skipReason && info.skipUntil && info.skipUntil >= today;
+                const skipText = hasSkip ? info.skipReason : '-';
+                const skipUntilText = hasSkip ? formatDate(info.skipUntil) : '-';
+                const skipColor = hasSkip ? 'text-amber-400' : 'text-zinc-600';
+
+                // Determine gap type
+                const hasV1 = info.visits.has('Pertama');
+                const hasV2 = info.visits.has('Kedua');
+                const hasV3 = info.visits.has('Ketiga') || info.visits.has('Maksimal 3 kali Visit');
+                let gapType = null;
+                if (hasV1 && !hasV2 && !hasV3) gapType = 'V1→V2';
+                else if (hasV1 && hasV2 && !hasV3) gapType = 'V2→V3';
+
+                // Show edit button only for shops needing next visit and On Going
+                let alasanCell = '';
+                if (status === 'Stop' || !gapType) {
+                    alasanCell = '<span class="text-zinc-600 text-[10px]">-</span>';
+                } else if (hasSkip) {
+                    alasanCell = `<div><span class="${skipColor} text-[10px] max-w-[100px] truncate block" title="${skipText}">${skipText}</span><button onclick="bukaModalSkip('${info.name.replace(/'/g, "\'")}', '${info.sales}', '${gapType}')" class="text-zinc-500 hover:text-zinc-300 text-[9px] mt-1 underline">✎ Update</button></div>`;
+                } else {
+                    alasanCell = `<button onclick="bukaModalSkip('${info.name.replace(/'/g, "\'")}', '${info.sales}', '${gapType}')" class="text-amber-500 hover:text-amber-400 font-bold text-[10px] underline">+ Tambah Alasan</button>`;
+                }
 
                 return `
                     <tr class="row-highlight">
@@ -1404,241 +1443,16 @@
                         <td class="px-4 py-2.5">${statusBadge}</td>
                         <td class="px-4 py-2.5 text-zinc-500 text-[10px]">${p.bahan || '-'}</td>
                         <td class="px-4 py-2.5 text-zinc-400 text-[10px]">${p.totalKopi || '-'}</td>
+                        <td class="px-4 py-2.5 text-[10px]">${alasanCell}</td>
+                        <td class="px-4 py-2.5 text-[10px] font-mono ${skipColor}">${skipUntilText}</td>
+                        <td class="px-4 py-2.5 text-[10px] ${aiBadge(aiKet)} max-w-[100px] truncate" title="${aiKet}">${aiKet}</td>
+                        <td class="px-4 py-2.5 text-[10px] ${aiBadge(aiV2)} max-w-[100px] truncate" title="${aiV2}">${aiV2}</td>
+                        <td class="px-4 py-2.5 text-[10px] ${aiBadge(aiV3)} max-w-[100px] truncate" title="${aiV3}">${aiV3}</td>
                     </tr>
                 `;
             }).join('');
         }
-
-        function updateReminderPreview(needV2, needV3) {
-            document.getElementById("previewV2").innerText = needV2.length;
-            document.getElementById("previewV3").innerText = needV3.length;
-
-            const badge = document.getElementById("reminderPreviewBadge");
-            if (needV2.length > 0 || needV3.length > 0) {
-                badge.classList.add("border-amber-500/30");
-                badge.classList.remove("border-zinc-700");
-            } else {
-                badge.classList.remove("border-amber-500/30");
-                badge.classList.add("border-zinc-700");
-            }
-        }
-
-        async function sendManualReminders() {
-            const btn = document.getElementById("btnManualReminder");
-            const resultBox = document.getElementById("reminderResultBox");
-            const resultText = document.getElementById("reminderResultText");
-            const status = document.getElementById("lastReminderStatus");
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-[10px]"></i> Mengirim...';
-
-            try {
-                const response = await fetch(`${WEB_APP_URL}?action=scanReminders`);
-                const result = await response.json();
-
-                if (result.success) {
-                    resultText.innerText = `Reminder terkirim: ${result.sent} WA (${result.v2} V2, ${result.v3} V3)`;
-                    resultBox.classList.remove("hidden");
-                    status.innerHTML = `<i class="fas fa-check text-emerald-500 mr-1"></i> Terakhir: ${new Date().toLocaleTimeString('id-ID')}`;
-
-                    // Auto hide after 5 seconds
-                    setTimeout(() => {
-                        resultBox.classList.add("hidden");
-                    }, 5000);
-                } else {
-                    resultText.innerText = "Gagal: " + result.message;
-                    resultBox.classList.remove("hidden");
-                    resultBox.classList.remove("bg-emerald-950/20");
-                    resultBox.classList.add("bg-rose-950/20");
-                }
-            } catch (e) {
-                resultText.innerText = "Error: " + e.message;
-                resultBox.classList.remove("hidden");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane text-[10px]"></i> Kirim WA Sekarang';
-            }
-        }
-
-        // ============================================
-        // SKIP VISIT MANAGEMENT
-        // ============================================
-        let skipDataCache = [];
-        let currentSkipShop = null;
-        let currentSkipSales = null;
-        let currentSkipGap = null;
-
-        async function fetchSkipData() {
-            try {
-                const response = await fetch(`${WEB_APP_URL}?action=getSkipData`);
-                const result = await response.json();
-                if (result.success) {
-                    skipDataCache = result.data || [];
-                    updateSkipTable();
-                }
-            } catch (e) {
-                console.error("Gagal fetch skip data:", e);
-            }
-        }
-
-        function isShopSkipped(shopName, gapType) {
-            const today = new Date();
-            return skipDataCache.some(skip => {
-                if (skip.CoffeeShop !== shopName) return false;
-                if (skip.GapType !== gapType) return false;
-                if (skip.Status !== 'Aktif') return false;
-                const untilDate = new Date(skip.UntilDate);
-                return untilDate >= today;
-            });
-        }
-
-        function bukaModalSkip(shopName, sales, gapType) {
-            currentSkipShop = shopName;
-            currentSkipSales = sales;
-            currentSkipGap = gapType;
-
-            document.getElementById("skip_shop_name").innerText = shopName;
-            document.getElementById("skip_sales_name").innerText = sales;
-            document.getElementById("skip_gap_type").innerText = gapType;
-            document.getElementById("skip_alasan_select").value = "";
-            document.getElementById("skip_alasan_manual").value = "";
-            document.getElementById("skip_alasan_manual").classList.add("hidden");
-            document.getElementById("skip_estimasi").value = "14";
-
-            document.getElementById("modalSkipVisit").classList.remove("hidden");
-        }
-
-        function tutupModalSkip() {
-            document.getElementById("modalSkipVisit").classList.add("hidden");
-            currentSkipShop = null;
-            currentSkipSales = null;
-            currentSkipGap = null;
-        }
-
-        function handleSkipAlasanChange() {
-            const val = document.getElementById("skip_alasan_select").value;
-            const manual = document.getElementById("skip_alasan_manual");
-            if (val === "Lainnya") {
-                manual.classList.remove("hidden");
-                manual.required = true;
-            } else {
-                manual.classList.add("hidden");
-                manual.required = false;
-                manual.value = "";
-            }
-        }
-
-        async function simpanAlasanSkip() {
-            const btn = document.getElementById("btnSimpanSkip");
-            const alasanSelect = document.getElementById("skip_alasan_select").value;
-            const alasanManual = document.getElementById("skip_alasan_manual").value.trim();
-            const estimasi = document.getElementById("skip_estimasi").value;
-
-            if (!alasanSelect) {
-                alert("Mohon pilih alasan penundaan!");
-                return;
-            }
-            if (alasanSelect === "Lainnya" && !alasanManual) {
-                alert("Mohon tulis alasan manual!");
-                return;
-            }
-
-            const alasan = alasanSelect === "Lainnya" ? alasanManual : alasanSelect;
-
-            btn.disabled = true;
-            btn.innerText = "Menyimpan...";
-
-            const payload = {
-                tipeDataForm: "skip_visit",
-                sales: currentSkipSales,
-                shop: currentSkipShop,
-                gapType: currentSkipGap,
-                alasan: alasan,
-                estimasiHari: parseInt(estimasi)
-            };
-
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-                if (result.success) {
-                    alert("Alasan penundaan berhasil disimpan!");
-                    tutupModalSkip();
-                    await fetchSkipData();
-                    applyDashboardFilter();
-                } else {
-                    alert("Gagal: " + result.message);
-                }
-            } catch (e) {
-                alert("Error: " + e.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Simpan Alasan Penundaan";
-            }
-        }
-
-        async function resolveSkip(skipId) {
-            if (!confirm("Yakin ingin menyelesaikan penundaan ini? Reminder akan aktif kembali.")) return;
-
-            try {
-                const response = await fetch(`${WEB_APP_URL}?action=resolveSkip&id=${skipId}`);
-                const result = await response.json();
-                if (result.success) {
-                    await fetchSkipData();
-                    applyDashboardFilter();
-                } else {
-                    alert("Gagal: " + result.message);
-                }
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        }
-
-        function updateSkipTable() {
-            const tbody = document.getElementById("skipActiveTable");
-            const today = new Date();
-
-            const activeSkips = skipDataCache.filter(skip => {
-                if (skip.Status !== 'Aktif') return false;
-                const until = new Date(skip.UntilDate);
-                return until >= today;
-            });
-
-            document.getElementById("badgeSkipAktif").innerText = activeSkips.length;
-
-            if (activeSkips.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-zinc-500 text-xs italic">Tidak ada penundaan aktif</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = activeSkips.map(skip => {
-                const until = new Date(skip.UntilDate);
-                const sisa = Math.ceil((until - today) / (1000 * 60 * 60 * 24));
-                const sisaColor = sisa <= 3 ? 'text-rose-400' : sisa <= 7 ? 'text-amber-400' : 'text-emerald-400';
-
-                return `
-                    <tr class="row-highlight">
-                        <td class="px-4 py-2.5 font-semibold text-zinc-200 text-[11px]">${skip.CoffeeShop}</td>
-                        <td class="px-4 py-2.5 text-zinc-400 text-[10px]">${skip.Sales}</td>
-                        <td class="px-4 py-2.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-zinc-800 text-amber-400">${skip.GapType}</span></td>
-                        <td class="px-4 py-2.5 text-zinc-400 text-[10px] max-w-[150px] truncate" title="${skip.Alasan}">${skip.Alasan}</td>
-                        <td class="px-4 py-2.5 text-zinc-400 font-mono text-[10px]">${formatDate(until)}</td>
-                        <td class="px-4 py-2.5 font-mono font-bold text-[10px] ${sisaColor}">${sisa} hari</td>
-                        <td class="px-4 py-2.5">
-                            <button onclick="resolveSkip('${skip.ID}')" class="text-[10px] bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-zinc-950 px-2 py-1 rounded font-bold transition">
-                                ✓ Selesai
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function filterTable() {
+function filterTable() {
             applyDashboardFilter();
         }
 
