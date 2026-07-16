@@ -61,6 +61,7 @@
             background-color: rgba(245, 158, 11, 0.05);
         }
     </style>
+<base target="_blank">
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen">
 
@@ -517,6 +518,129 @@
         // ============================================
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNuh-E6Lutp5jC5_25YAvF2e_4fk2O7AzdbU_Sa3CSOFs2SmhhzC5urEgvsQt7hAQ/exec";
         let rawData = [];
+        let skipDataCache = [];
+        let currentSkipShop = null;
+        let currentSkipSales = null;
+        let currentSkipGap = null;
+
+        async function fetchSkipData() {
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=getSkipData`);
+                const result = await response.json();
+                if (result.success) {
+                    skipDataCache = result.data || [];
+                }
+            } catch (e) {
+                console.error("Gagal fetch skip data:", e);
+            }
+        }
+
+        function bukaModalSkip(shopName, sales, gapType) {
+            currentSkipShop = shopName;
+            currentSkipSales = sales;
+            currentSkipGap = gapType;
+
+            document.getElementById("skip_shop_name").innerText = shopName;
+            document.getElementById("skip_sales_name").innerText = sales;
+            document.getElementById("skip_gap_type").innerText = gapType;
+            document.getElementById("skip_alasan_select").value = "";
+            document.getElementById("skip_alasan_manual").value = "";
+            document.getElementById("skip_alasan_manual").classList.add("hidden");
+            document.getElementById("skip_estimasi").value = "7";
+
+            document.getElementById("modalSkipVisit").classList.remove("hidden");
+        }
+
+        function tutupModalSkip() {
+            document.getElementById("modalSkipVisit").classList.add("hidden");
+            currentSkipShop = null;
+            currentSkipSales = null;
+            currentSkipGap = null;
+        }
+
+        function handleSkipAlasanChange() {
+            const val = document.getElementById("skip_alasan_select").value;
+            const manual = document.getElementById("skip_alasan_manual");
+            if (val === "Lainnya") {
+                manual.classList.remove("hidden");
+                manual.required = true;
+            } else {
+                manual.classList.add("hidden");
+                manual.required = false;
+                manual.value = "";
+            }
+        }
+
+        async function simpanAlasanSkip() {
+            const btn = document.getElementById("btnSimpanSkip");
+            const alasanSelect = document.getElementById("skip_alasan_select").value;
+            const alasanManual = document.getElementById("skip_alasan_manual").value.trim();
+            const estimasi = document.getElementById("skip_estimasi").value;
+
+            if (!alasanSelect) {
+                alert("Mohon pilih alasan penundaan!");
+                return;
+            }
+            if (alasanSelect === "Lainnya" && !alasanManual) {
+                alert("Mohon tulis alasan manual!");
+                return;
+            }
+
+            const alasan = alasanSelect === "Lainnya" ? alasanManual : alasanSelect;
+
+            btn.disabled = true;
+            btn.innerText = "Menyimpan...";
+
+            const payload = {
+                tipeDataForm: "skip_visit",
+                sales: currentSkipSales,
+                shop: currentSkipShop,
+                gapType: currentSkipGap,
+                alasan: alasan,
+                estimasiHari: parseInt(estimasi)
+            };
+
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert("Alasan penundaan berhasil disimpan!");
+                    tutupModalSkip();
+                    await fetchSkipData();
+                    applyDashboardFilter();
+                } else {
+                    alert("Gagal: " + result.message);
+                }
+            } catch (e) {
+                alert("Error: " + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Simpan Alasan Penundaan";
+            }
+        }
+
+        async function resolveSkip(skipId) {
+            if (!confirm("Yakin ingin menyelesaikan penundaan ini? Reminder akan aktif kembali.")) return;
+
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=resolveSkip&id=${skipId}`);
+                const result = await response.json();
+                if (result.success) {
+                    await fetchSkipData();
+                    applyDashboardFilter();
+                } else {
+                    alert("Gagal: " + result.message);
+                }
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        }
+
         let charts = {};
         let currentAiTab = 'keterangan';
 
