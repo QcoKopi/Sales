@@ -2498,8 +2498,132 @@ function toggleProfileEdit() {
   }
 }
 
+function generateIdCardCanvas() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 600;
+  canvas.height = 340;
+  const ctx = canvas.getContext("2d");
+
+  // Background
+  ctx.fillStyle = "#FAF9F5";
+  ctx.fillRect(0, 0, 600, 340);
+
+  // Border
+  ctx.strokeStyle = "#E2DDD0";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(8, 8, 584, 324);
+
+  // Top accent strip
+  ctx.fillStyle = "#5C4130";
+  ctx.fillRect(8, 8, 584, 5);
+
+  // Brand header
+  ctx.fillStyle = "#8C8068";
+  ctx.font = "bold 10px sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("Q.CO COFFEE LAB & ROASTERY", 30, 38);
+
+  // Foto (circular clip)
+  const foto = document.getElementById("profile_photo_preview");
+  if (foto && !foto.classList.contains("hidden") && foto.src) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(70, 110, 36, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(foto, 34, 74, 72, 72);
+    ctx.restore();
+    // Border foto
+    ctx.beginPath();
+    ctx.arc(70, 110, 36, 0, Math.PI * 2);
+    ctx.strokeStyle = "#E2DDD0";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  } else {
+    // Fallback circle
+    ctx.beginPath();
+    ctx.arc(70, 110, 36, 0, Math.PI * 2);
+    ctx.fillStyle = "#E9D6C3";
+    ctx.fill();
+    ctx.fillStyle = "#5C4130";
+    ctx.font = "bold 18px serif";
+    ctx.textAlign = "center";
+    const initial = (currentUser.name || "SL").split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+    ctx.fillText(initial, 70, 118);
+  }
+
+  // Nama
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#2B241E";
+  ctx.font = "bold 26px 'IBM Plex Serif', serif";
+  ctx.fillText(currentUser.name || "Nama Sales", 130, 100);
+
+  // Jabatan
+  ctx.fillStyle = "#8C8068";
+  ctx.font = "11px sans-serif";
+  ctx.letterSpacing = "0.08em";
+  ctx.fillText("AUTHORIZED REPRESENTATIVE", 130, 125);
+
+  // Verified badge
+  ctx.fillStyle = "#EDF1E7";
+  ctx.beginPath();
+  ctx.roundRect(130, 140, 110, 22, 11);
+  ctx.fill();
+  ctx.fillStyle = "#5F7A52";
+  ctx.font = "bold 9px sans-serif";
+  ctx.fillText("✓  VERIFIED", 148, 155);
+
+  // Divider
+  ctx.strokeStyle = "#E2DDD0";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(30, 190);
+  ctx.lineTo(570, 190);
+  ctx.stroke();
+
+  // QR Section
+  const qrBox = document.getElementById("qrcode_local_box");
+  let qrDrawn = false;
+  if (qrBox) {
+    const qrCanvas = qrBox.querySelector("canvas");
+    const qrImg = qrBox.querySelector("img");
+    if (qrCanvas) {
+      ctx.drawImage(qrCanvas, 460, 210, 90, 90);
+      qrDrawn = true;
+    } else if (qrImg && qrImg.src) {
+      ctx.drawImage(qrImg, 460, 210, 90, 90);
+      qrDrawn = true;
+    }
+  }
+
+  // WA Link text
+  const waLink = document.getElementById("profile_link_anchor").innerText || "wa.me/62...";
+  ctx.fillStyle = "#5C4130";
+  ctx.font = "12px monospace";
+  ctx.fillText(waLink, 460, 315);
+
+  // Contact label
+  ctx.fillStyle = "#8C8068";
+  ctx.font = "9px sans-serif";
+  ctx.letterSpacing = "0.1em";
+  ctx.fillText("HUBUNGI VIA WHATSAPP", 460, 205);
+
+  // Left bottom info
+  ctx.fillStyle = "#2B241E";
+  ctx.font = "12px sans-serif";
+  ctx.fillText("Konsultasi bahan baku kopi, sampling,", 30, 230);
+  ctx.fillText("dan penawaran harga khusus.", 30, 248);
+
+  // Footer
+  ctx.fillStyle = "#8C8068";
+  ctx.font = "8px sans-serif";
+  ctx.letterSpacing = "0.15em";
+  ctx.fillText("OFFICIAL SALES PROFILE  •  Q.CO COFFEE LAB", 30, 310);
+
+  return canvas;
+}
+
 function downloadIdCard() {
-  const card = document.getElementById("idCardCapture");
   const nomorWA = document.getElementById("profile_input_wa").value.trim();
   if (nomorWA === "") { showToast("Mohon atur nomor WA Anda terlebih dahulu!", "error"); toggleProfileEdit(); return; }
 
@@ -2510,23 +2634,22 @@ function downloadIdCard() {
     return;
   }
 
-  showToast("Sedang membuat kartu pengenal...", "info");
+  showToast("Sedang membuat kartu nama...", "info");
 
-  html2canvas(card, {
-    scale: 3,
-    backgroundColor: null,
-    useCORS: true,
-    logging: false
-  }).then(canvas => {
-    const link = document.createElement("a");
-    link.download = `Kartu_Pengenal_${currentUser.name.replace(/\s+/g, '_')}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-    showToast("Kartu pengenal berhasil di-download!", "success");
-  }).catch(err => {
-    console.error(err);
-    showToast("Gagal generate kartu. Coba lagi.", "error");
-  });
+  // Delay sebentar supaya QR sudah render
+  setTimeout(() => {
+    try {
+      const canvas = generateIdCardCanvas();
+      const link = document.createElement("a");
+      link.download = `Kartu_Nama_${currentUser.name.replace(/\s+/g, '_')}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      showToast("Kartu nama berhasil di-download!", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal generate kartu. Coba lagi.", "error");
+    }
+  }, 300);
 }
 
 async function shareIdCardToWA() {
@@ -2534,11 +2657,11 @@ async function shareIdCardToWA() {
   if (nomorWA === "") { showToast("Mohon atur nomor WA Anda terlebih dahulu!", "error"); toggleProfileEdit(); return; }
 
   const leadWAInput = document.getElementById("lead_destination_wa").value.trim();
-  if (leadWAInput === "") { showToast("Mohon isi nomor WhatsApp klien / leads tujuan!", "error"); toggleProfileEdit(); return; }
+  if (leadWAInput === "") { showToast("Mohon isi nomor WhatsApp klien!", "error"); toggleProfileEdit(); return; }
 
   const preview = document.getElementById("profile_photo_preview");
   if (preview.classList.contains("hidden") || !preview.src) {
-    showToast("Foto profile wajib di-upload untuk generate kartu!", "error");
+    showToast("Foto profile wajib di-upload!", "error");
     toggleProfileEdit();
     return;
   }
@@ -2546,40 +2669,43 @@ async function shareIdCardToWA() {
   const waSalesFormatted = formatUntukInternationalWA(nomorWA);
   const waLeadFormatted = formatUntukInternationalWA(leadWAInput);
 
-  const card = document.getElementById("idCardCapture");
-  try {
-    const canvas = await html2canvas(card, { scale: 3, backgroundColor: null, useCORS: true, logging: false });
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
-    const file = new File([blob], `Kartu_${currentUser.name}.png`, { type: "image/png" });
+  showToast("Sedang membuat kartu nama...", "info");
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({
-          files: [file],
-          title: 'Kartu Pengenal Q.co Coffee Lab',
-          text: `Halo! Saya ${currentUser.name} dari Q.co Coffee Lab. Berikut kartu pengenal saya. Anda bisa menghubungi saya di https://wa.me/${waSalesFormatted}`
-        });
-        showToast("Kartu berhasil dibagikan!", "success");
-        return;
-      } catch (shareErr) {
-        console.log("Share API failed, fallback to download + wa.me");
+  setTimeout(async () => {
+    try {
+      const canvas = generateIdCardCanvas();
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+      const file = new File([blob], `Kartu_${currentUser.name}.png`, { type: "image/png" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'Kartu Nama Q.co Coffee Lab',
+            text: `Halo! Saya ${currentUser.name} dari Q.co Coffee Lab. Hubungi saya di https://wa.me/${waSalesFormatted}`
+          });
+          showToast("Kartu berhasil dibagikan!", "success");
+          return;
+        } catch (shareErr) {
+          // User cancelled, fallback
+        }
       }
+
+      // Fallback: download + buka WA
+      const link = document.createElement("a");
+      link.download = `Kartu_Nama_${currentUser.name.replace(/\s+/g, '_')}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+
+      const teksPesan = `Halo! Saya *${currentUser.name}* dari *Q.co Coffee Lab & Roastery*.\n\nBerikut kartu nama digital saya. Anda bisa menghubungi saya kapan saja untuk konsultasi kopi, sampling, atau penawaran harga.\n\n👉 *WhatsApp:* https://wa.me/${waSalesFormatted}\n\nTerima kasih! 🙏`;
+      window.open(`https://api.whatsapp.com/send?phone=${waLeadFormatted}&text=${encodeURIComponent(teksPesan)}`, "_blank");
+      showToast("Kartu di-download & WA dibuka. Attach gambar sebelum kirim!", "success");
+
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal generate kartu. Coba lagi.", "error");
     }
-
-    const link = document.createElement("a");
-    link.download = `Kartu_Pengenal_${currentUser.name.replace(/\s+/g, '_')}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-
-    const teksPesan = `Halo! Saya *${currentUser.name}* dari *Q.co Coffee Lab & Roastery*.\n\nBerikut kartu pengenal digital saya (sudah saya kirimkan gambar). Anda bisa menghubungi saya kapan saja untuk konsultasi kopi, sampling, atau penawaran harga.\n\n👉 *WhatsApp:* https://wa.me/${waSalesFormatted}\n\nTerima kasih! 🙏`;
-    const urlKirim = `https://api.whatsapp.com/send?phone=${waLeadFormatted}&text=${encodeURIComponent(teksPesan)}`;
-    window.open(urlKirim, "_blank");
-    showToast("Kartu di-download & WA dibuka. Attach gambar sebelum kirim!", "success");
-
-  } catch (err) {
-    console.error(err);
-    showToast("Gagal generate kartu. Coba lagi.", "error");
-  }
+  }, 300);
 }
 
 // ============================================================================
