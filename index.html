@@ -257,6 +257,9 @@
           <button data-tab="entry" onclick="switchTab('entry')" class="nav-pill flex items-center gap-1.5">
             <i class="fa-solid fa-pen-to-square text-[11px]"></i> Input Data
           </button>
+          <button data-tab="myleads" data-role="Sales" onclick="switchTab('myleads')" class="nav-pill flex items-center gap-1.5">
+            <i class="fa-solid fa-list-check text-[11px]"></i> Leads Saya
+          </button>
         </nav>
       </div>
     </div>
@@ -981,6 +984,47 @@
       </div>
     </section>
 
+    <!-- ============================================================ -->
+    <!-- TAB: MY LEADS (Sales only) — Daftar Lengkap Leads Terfilter -->
+    <!-- ============================================================ -->
+    <section id="tab-myleads" class="tab-panel space-y-6 hidden">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <div>
+          <h2 class="font-display text-xl text-ink-600">Daftar Lengkap Leads</h2>
+          <p class="text-xs text-ink-400 mt-0.5">Data kunjungan sales Anda seluruhnya</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-ink-400 font-data" id="myLeadsCount">0 leads</span>
+          <button onclick="fetchLeadsData()" class="btn-ghost rounded-lg px-3.5 py-2 text-xs flex items-center gap-2">
+            <i class="fa-solid fa-arrow-rotate-right text-[11px]"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="card rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-porcelain-400 flex flex-wrap justify-between items-center gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-ink-600 uppercase tracking-wider">Semua Coffee Shop</h3>
+            <p class="text-[10px] text-ink-400 mt-1">Klik baris untuk lihat detail atau tunda visit</p>
+          </div>
+          <input type="text" id="searchMyLeads" oninput="filterMyLeadsTable()" placeholder="Cari coffee shop..." class="input-field !w-56 text-xs">
+        </div>
+        <div class="overflow-x-auto max-h-96 overflow-y-auto scrollbar-thin">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-porcelain-200 sticky top-0"><tr class="text-ink-400 font-bold uppercase tracking-wider text-[10px]">
+              <th class="px-4 py-3">Tgl V1</th><th class="px-4 py-3">Coffee Shop</th><th class="px-4 py-3">Area</th>
+              <th class="px-4 py-3">Visit Terakhir</th><th class="px-4 py-3">PIC</th><th class="px-4 py-3">Telp</th><th class="px-4 py-3">Status</th>
+              <th class="px-4 py-3">Bahan</th><th class="px-4 py-3">Kapasitas</th><th class="px-4 py-3">Alasan Tunda</th><th class="px-4 py-3">Jeda s/d</th>
+              <th class="px-4 py-3">AI Keterangan</th><th class="px-4 py-3">Aksi</th>
+            </tr></thead>
+            <tbody id="myLeadsTableBody" class="divide-y divide-porcelain-300">
+              <tr><td colspan="13" class="px-4 py-6 text-center text-ink-300 text-xs italic">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -1189,6 +1233,7 @@ function switchTab(tab) {
   if (tab === 'entry') getLocation();
   if (tab === 'reminder') document.getElementById('reminderSubtitle').innerText =
     currentUser.role === 'Admin' ? 'Semua coffee shop yang perlu ditindaklanjuti' : 'Coffee shop Anda yang perlu ditindaklanjuti';
+  if (tab === 'myleads') renderMyLeadsTable();
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1210,6 +1255,7 @@ function analyzeText(text, type) {
     const t = text.toLowerCase();
 
     if (type === 'keterangan') {
+        // STOP categories (prioritas tinggi)
         if (t.includes('stop') && (t.includes('potensi') || t.includes('kecil') || t.includes('sedikit')))
             return { category: 'Stop: Volume/Potensi Kecil', confidence: 0.95 };
         if (t.includes('stop') && (t.includes('kontrak') || t.includes('langganan') || t.includes('roastery lain') || t.includes('supplier tetap')))
@@ -1222,16 +1268,26 @@ function analyzeText(text, type) {
             return { category: 'Stop: Punya Roastery Sendiri', confidence: 0.9 };
         if (t.includes('stop'))
             return { category: 'Stop: Alasan Lain', confidence: 0.8 };
+
+        // KENDALA categories
         if (t.includes('menolak') && (t.includes('kontak') || t.includes('informasi')))
             return { category: 'Kendala: Menolak Beri Kontak', confidence: 0.95 };
         if (t.includes('tidak bersedia') && t.includes('kontak'))
             return { category: 'Kendala: Menolak Beri Kontak', confidence: 0.95 };
-        if (t.includes('tidak bisa') && (t.includes('bertemu') || t.includes('temu') || t.includes('ketemu')))
-            return { category: 'Kendala: Tidak Bisa Bertemu PIC', confidence: 0.9 };
-        if (t.includes('susah') && (t.includes('bertemu') || t.includes('temu')))
+        if ((t.includes('tidak bisa') || t.includes('susah')) && (t.includes('bertemu') || t.includes('temu') || t.includes('ketemu')))
             return { category: 'Kendala: Tidak Bisa Bertemu PIC', confidence: 0.9 };
         if (t.includes('owner') && (t.includes('tidak ada') || t.includes('sedang') || t.includes('diluar')))
             return { category: 'Kendala: PIC Sedang Tidak Ada', confidence: 0.9 };
+        if (t.includes('harga') || t.includes('mahal') || t.includes('budget') || t.includes('tinggi') || t.includes('tidak sesuai budget'))
+            return { category: 'Kendala: Masalah Harga', confidence: 0.85 };
+        if (t.includes('barista') && (t.includes('ganti') || t.includes('tidak ada') || t.includes('baru') || t.includes('kurang paham')))
+            return { category: 'Kendala: Staff/Barista', confidence: 0.85 };
+        if (t.includes('tutup') || t.includes('tidak buka') || t.includes('renovasi'))
+            return { category: 'Kendala: Toko Tutup/Renovasi', confidence: 0.9 };
+        if (t.includes('penjualan') && t.includes('flow'))
+            return { category: 'Kendala: Penjualan Sedang Ramai', confidence: 0.85 };
+
+        // SAMPLE categories
         if (t.includes('sample') && (t.includes('sudah') || t.includes('memberikan') || t.includes('mengirim') || t.includes('dicoba') || t.includes('diberikan') || t.includes('dikasih')))
             return { category: 'Sample: Sudah Diberikan', confidence: 0.9 };
         if (t.includes('sample') && (t.includes('jadwal') || t.includes('atur') || t.includes('rencana') || t.includes('tetapkan')))
@@ -1240,34 +1296,39 @@ function analyzeText(text, type) {
             return { category: 'Sample: Menunggu Sample', confidence: 0.85 };
         if (t.includes('sample') && t.includes('kurang'))
             return { category: 'Sample: Kurang/Tidak Sesuai', confidence: 0.85 };
+
+        // FOLLOW UP & JADWAL
         if (t.includes('follow up') || t.includes('followup') || t.includes('follow-up'))
             return { category: 'Follow Up', confidence: 0.85 };
-        if (t.includes('menunggu') && (t.includes('jawaban') || t.includes('keputusan') || t.includes('acc')))
+        if ((t.includes('atur') || t.includes('tetapkan') || t.includes('buat') || t.includes('setting')) && (t.includes('jadwal') || t.includes('janji') || t.includes('schedule')))
+            return { category: 'Penjadwalan Ulang', confidence: 0.9 };
+        if (t.includes('jadwal') && (t.includes('ulang') || t.includes('tunda') || t.includes('undur') || t.includes('ganti')))
+            return { category: 'Penjadwalan Ulang', confidence: 0.9 };
+        if (t.includes('menunggu') && (t.includes('jawaban') || t.includes('keputusan') || t.includes('acc') || t.includes('approval')))
             return { category: 'Menunggu Keputusan', confidence: 0.85 };
         if (t.includes('tunggu') && (t.includes('jawaban') || t.includes('keputusan')))
             return { category: 'Menunggu Keputusan', confidence: 0.85 };
-        if (t.includes('demo') || t.includes('dial in') || t.includes('dialin'))
+
+        // DEMO & MEETING
+        if (t.includes('demo') || t.includes('dial in') || t.includes('dialin') || t.includes('dial-in'))
             return { category: 'Rencana Demo/Dial In', confidence: 0.9 };
-        if (t.includes('atur') && (t.includes('jadwal') || t.includes('janji')))
-            return { category: 'Penjadwalan Ulang', confidence: 0.85 };
-        if (t.includes('jadwal') && (t.includes('ulang') || t.includes('temu')))
-            return { category: 'Penjadwalan Ulang', confidence: 0.85 };
-        if (t.includes('harga') || t.includes('mahal') || t.includes('budget') || t.includes('tinggi') || t.includes('tidak sesuai budget'))
-            return { category: 'Kendala: Masalah Harga', confidence: 0.85 };
-        if (t.includes('houseblend') || t.includes('arabika') || t.includes('robusta') || t.includes('gayo') || t.includes('bajawa') || t.includes('temanggung') || t.includes('argoporo') || t.includes('ciwidey'))
+        if (t.includes('meeting') || t.includes('pertemuan') || t.includes('diskusi'))
+            return { category: 'Meeting/Diskusi', confidence: 0.85 };
+
+        // BAHAN / SPESIFIKASI
+        if (t.includes('houseblend') || t.includes('arabika') || t.includes('robusta') || t.includes('gayo') || t.includes('bajawa') || t.includes('temanggung') || t.includes('argoporo') || t.includes('ciwidey') || t.includes('flores') || t.includes('toraja') || t.includes('kintamani'))
             return { category: 'Spesifikasi Bahan', confidence: 0.9 };
+
+        // SUDAH JADI KLIEN
         if (t.includes('sudah') && (t.includes('order') || t.includes('pelanggan') || t.includes('langganan') || t.includes('jadi pelanggan') || t.includes('sudah pernah')))
             return { category: 'Sudah Jadi Klien', confidence: 0.85 };
         if (t.includes('sudah') && t.includes('suplayer') && t.includes('kita'))
             return { category: 'Sudah Jadi Klien', confidence: 0.85 };
-        if (t.includes('barista') && (t.includes('ganti') || t.includes('tidak ada') || t.includes('baru') || t.includes('kurang paham')))
-            return { category: 'Kendala: Staff/Barista', confidence: 0.85 };
-        if (t.includes('tutup') || t.includes('tidak buka') || t.includes('renovasi'))
-            return { category: 'Kendala: Toko Tutup/Renovasi', confidence: 0.9 };
-        if (t.includes('penjualan') && t.includes('flow'))
-            return { category: 'Kendala: Penjualan Sedang Ramai', confidence: 0.85 };
+
+        // ROASTERY SENDIRI
         if (t.includes('roastery') && (t.includes('sendiri') || t.includes('punya') || t.includes('sudah ada')))
             return { category: 'Stop: Punya Roastery Sendiri', confidence: 0.9 };
+
         return { category: 'Lainnya', confidence: 0.5 };
     }
 
@@ -1293,16 +1354,22 @@ function analyzeText(text, type) {
                 return { category: 'Follow Up: Hasil Sample', confidence: 0.9 };
             return { category: 'Follow Up', confidence: 0.85 };
         }
-        if (t.includes('tanya') || t.includes('menanyakan'))
+        if (t.includes('tanya') || t.includes('menanyakan') || t.includes('nanya'))
             return { category: 'Tanya Hasil Sample', confidence: 0.85 };
-        if (t.includes('analisa') || t.includes('analisis') || t.includes('kebutuhan'))
+        if (t.includes('analisa') || t.includes('analisis') || t.includes('kebutuhan') || t.includes('kebutuhan'))
             return { category: 'Analisis Kebutuhan', confidence: 0.85 };
-        if (t.includes('bertemu') || t.includes('temu'))
+        if (t.includes('bertemu') || t.includes('temu') || t.includes('ketemu'))
             return { category: 'Bertemu PIC', confidence: 0.85 };
-        if (t.includes('lanjut') || t.includes('obrolan'))
+        if (t.includes('lanjut') || t.includes('obrolan') || t.includes('komunikasi'))
             return { category: 'Lanjutkan Obrolan', confidence: 0.8 };
-        if (t.includes('atur') && t.includes('jadwal'))
-            return { category: 'Penjadwalan Ulang', confidence: 0.85 };
+        if ((t.includes('atur') || t.includes('tetapkan') || t.includes('buat') || t.includes('setting')) && (t.includes('jadwal') || t.includes('janji') || t.includes('schedule')))
+            return { category: 'Penjadwalan Ulang', confidence: 0.9 };
+        if (t.includes('jadwal') && (t.includes('ulang') || t.includes('tunda') || t.includes('undur') || t.includes('ganti')))
+            return { category: 'Penjadwalan Ulang', confidence: 0.9 };
+        if (t.includes('menunggu') && (t.includes('jawaban') || t.includes('keputusan') || t.includes('acc')))
+            return { category: 'Menunggu Keputusan', confidence: 0.85 };
+        if (t.includes('tunggu') && (t.includes('jawaban') || t.includes('keputusan')))
+            return { category: 'Menunggu Keputusan', confidence: 0.85 };
         if (t.trim() === '-' || t.trim() === '')
             return { category: 'Tidak Ada Keterangan', confidence: 1.0 };
         return { category: 'Lainnya', confidence: 0.5 };
@@ -1316,18 +1383,23 @@ function analyzeText(text, type) {
                 return { category: 'Follow Up: Hasil Sample', confidence: 0.9 };
             return { category: 'Follow Up', confidence: 0.85 };
         }
-        if (t.includes('atur') && t.includes('jadwal'))
+        if ((t.includes('atur') || t.includes('tetapkan') || t.includes('buat')) && (t.includes('jadwal') || t.includes('janji')))
             return { category: 'Penjadwalan Ulang', confidence: 0.85 };
+        if (t.includes('jadwal') && (t.includes('ulang') || t.includes('tunda') || t.includes('undur')))
+            return { category: 'Penjadwalan Ulang', confidence: 0.85 };
+        if (t.includes('menunggu') && (t.includes('jawaban') || t.includes('keputusan') || t.includes('acc')))
+            return { category: 'Menunggu Keputusan', confidence: 0.85 };
+        if (t.includes('tunggu') && (t.includes('jawaban') || t.includes('keputusan')))
+            return { category: 'Menunggu Keputusan', confidence: 0.85 };
+        if (t.includes('closing') || t.includes('deal') || t.includes('acc') || t.includes('setuju'))
+            return { category: 'Proses Closing', confidence: 0.9 };
+        if (t.trim() === '-' || t.trim() === '')
+            return { category: 'Tidak Ada Keterangan', confidence: 1.0 };
         return { category: 'Lainnya', confidence: 0.5 };
     }
 
     return { category: 'Lainnya', confidence: 0.5 };
-}
-
-// ============================================================================
-// DATA FETCHING — LEADS
-// ============================================================================
-async function fetchLeadsData() {
+}function fetchLeadsData() {
   const loading = document.getElementById("loadingState");
   const content = document.getElementById("dashboardContent");
   loading.classList.remove("hidden");
@@ -1826,9 +1898,12 @@ function updateFullTable(data) {
 
   tbody.innerHTML = shops.slice(0, 100).map(info => {
     const p = info.profile;
-    const status = info.status === 'stop' ? 'Stop' : 'On Going';
+    const hasV3 = info.visits.has('Ketiga') || info.visits.has('Maksimal 3 kali Visit');
+    const status = info.status === 'stop' ? 'Stop' : (hasV3 ? 'V3 On Going' : 'On Going');
     const statusBadge = status === 'Stop'
       ? `<span class="badge bg-brick-50 text-brick-600 border border-brick-100">Stop</span>`
+      : status === 'V3 On Going'
+      ? `<span class="badge bg-espresso-50 text-espresso-600 border border-espresso-100">V3 On Going</span>`
       : `<span class="badge bg-honey-50 text-honey-600 border border-honey-100">On Going</span>`;
 
     const visit = info.latestVisit || 'Pertama';
@@ -1850,6 +1925,7 @@ function updateFullTable(data) {
     let gapType = null;
     if (hasV1 && !hasV2 && !hasV3) gapType = 'V1→V2';
     else if (hasV1 && hasV2 && !hasV3) gapType = 'V2→V3';
+    else if (hasV1 && hasV2 && hasV3 && info.status !== 'stop') gapType = 'Post-V3';
 
     let alasanCell = '';
     const safeName = info.name.replace(/'/g, "\\'");
@@ -1882,6 +1958,125 @@ function updateFullTable(data) {
 }
 
 function filterTable() { applyDashboardFilter(); }
+
+// ============================================================================
+// MY LEADS TABLE (Sales-only view)
+// ============================================================================
+function renderMyLeadsTable() {
+  if (!currentUser || currentUser.role === 'Admin') return;
+  const tbody = document.getElementById("myLeadsTableBody");
+  const search = document.getElementById("searchMyLeads") ? document.getElementById("searchMyLeads").value.toLowerCase() : "";
+  const myName = currentUser.name;
+
+  // Filter rawData untuk salesman ini
+  const myData = rawData.filter(r => String(r["Sales"] || "").trim() === myName);
+
+  // Build shop profiles (sama seperti updateFullTable tapi terfilter)
+  const shopProfiles = {};
+  myData.forEach(row => {
+    const shop = String(row["Nama Coffee Shop"] || "").trim();
+    if (!shop) return;
+    if (search && !shop.toLowerCase().includes(search)) return;
+
+    const visit = String(row["Visit Ke"] || "").trim();
+    const closing = String(row["Closing"] || "On Going").trim().toLowerCase();
+
+    if (!shopProfiles[shop]) {
+      shopProfiles[shop] = { visits: new Set(), status: closing, profile: {}, latestVisit: null, latestDate: null, aiKeterangan: null, aiAlasan2: null, aiAlasan3: null, skipReason: null, skipUntil: null, skipId: null };
+    }
+    shopProfiles[shop].visits.add(visit);
+    if (closing === 'stop') shopProfiles[shop].status = 'stop';
+
+    if (visit === 'Pertama') {
+      shopProfiles[shop].profile = {
+        area: row["Area"] || '', pic: row["Nama PIC"] || '', telp: row["Telp PIC"] || '',
+        bahan: row["Bahan Espresso"] || '', totalKopi: row["Total Penggunaan Kopi per bulan"] || '',
+        tanggal: row["Tanggal"]
+      };
+    }
+
+    const keterangan = String(row["Keterangan tambahan"] || "").trim();
+    const alasan2 = String(row["Alasan visit ke 2"] || "").trim();
+    const alasan3 = String(row["Alasan Visit ke 3"] || "").trim();
+    if (keterangan && keterangan !== '-') { const r = analyzeText(keterangan, 'keterangan'); if (r.category !== 'Tidak Ada Keterangan' && r.category !== 'Lainnya') shopProfiles[shop].aiKeterangan = r.category; }
+    if (alasan2 && alasan2 !== '-') { const r = analyzeText(alasan2, 'alasan2'); if (r.category !== 'Tidak Ada Keterangan' && r.category !== 'Lainnya') shopProfiles[shop].aiAlasan2 = r.category; }
+    if (alasan3 && alasan3 !== '-') { const r = analyzeText(alasan3, 'alasan3'); if (r.category !== 'Tidak Ada Keterangan' && r.category !== 'Lainnya') shopProfiles[shop].aiAlasan3 = r.category; }
+
+    const d = parseDate(row["Tanggal"]);
+    if (!shopProfiles[shop].latestDate || (d && d > shopProfiles[shop].latestDate)) { shopProfiles[shop].latestDate = d; shopProfiles[shop].latestVisit = visit; }
+  });
+
+  const today = new Date();
+  Object.keys(shopProfiles).forEach(shop => {
+    const skip = skipDataCache.find(s => s.CoffeeShop === shop && s.Status === 'Aktif' && new Date(s.UntilDate) >= today);
+    if (skip) { shopProfiles[shop].skipReason = skip.Alasan; shopProfiles[shop].skipUntil = new Date(skip.UntilDate); shopProfiles[shop].skipId = skip.ID; }
+  });
+
+  const shops = Object.entries(shopProfiles).map(([name, info]) => ({ name, ...info }));
+  shops.sort((a, b) => (b.latestDate || 0) - (a.latestDate || 0));
+
+  document.getElementById("myLeadsCount").innerText = shops.length + " leads";
+
+  tbody.innerHTML = shops.map(info => {
+    const p = info.profile;
+    const hasV3 = info.visits.has('Ketiga') || info.visits.has('Maksimal 3 kali Visit');
+    const status = info.status === 'stop' ? 'Stop' : (hasV3 ? 'V3 On Going' : 'On Going');
+    const statusBadge = status === 'Stop'
+      ? `<span class="badge bg-brick-50 text-brick-600 border border-brick-100">Stop</span>`
+      : status === 'V3 On Going'
+      ? `<span class="badge bg-espresso-50 text-espresso-600 border border-espresso-100">V3 On Going</span>`
+      : `<span class="badge bg-honey-50 text-honey-600 border border-honey-100">On Going</span>`;
+
+    const visit = info.latestVisit || 'Pertama';
+    const visitBadgeStyle = visit === 'Pertama' ? 'background:#F4F2EC;color:#655847' : visit === 'Kedua' ? 'background:#FBF1DD;color:#96692A' : 'background:#F7E9DF;color:#9A5638';
+
+    const aiKet = info.aiKeterangan || info.aiAlasan2 || info.aiAlasan3 || '-';
+    const aiColor = aiKet === '-' ? 'color:#8C8068' : 'color:#5F7A52';
+
+    const hasSkip = info.skipReason && info.skipUntil && info.skipUntil >= today;
+    const skipUntilText = hasSkip ? formatDate(info.skipUntil) : '-';
+    const skipColor = hasSkip ? 'color:#B8863B' : 'color:#8C8068';
+
+    const hasV1 = info.visits.has('Pertama');
+    const hasV2 = info.visits.has('Kedua');
+    let gapType = null;
+    if (hasV1 && !hasV2 && !hasV3) gapType = 'V1→V2';
+    else if (hasV1 && hasV2 && !hasV3) gapType = 'V2→V3';
+    else if (hasV1 && hasV2 && hasV3 && info.status !== 'stop') gapType = 'Post-V3';
+
+    const safeName = info.name.replace(/'/g, "\'");
+    let aksiCell = '';
+    if (status === 'Stop' || !gapType) {
+      aksiCell = '<span class="text-ink-300 text-[10px]">-</span>';
+    } else if (hasSkip) {
+      aksiCell = `<button onclick="bukaModalSkip('${safeName}', '${myName}', '${gapType}')" class="text-[10px] text-ink-300 hover:text-ink-600 underline">Update</button>`;
+    } else {
+      aksiCell = `<button onclick="bukaModalSkip('${safeName}', '${myName}', '${gapType}')" class="text-[10px] text-espresso-500 hover:text-espresso-600 font-bold underline">+ Tunda</button>`;
+    }
+
+    return `<tr class="row-hover">
+      <td class="px-4 py-2.5 text-ink-400 font-data text-[10px]">${formatDate(p.tanggal ? parseDate(p.tanggal) : null)}</td>
+      <td class="px-4 py-2.5 text-ink-600 font-bold text-[11px]">${info.name}</td>
+      <td class="px-4 py-2.5 text-ink-300 text-[10px]">${p.area || '-'}</td>
+      <td class="px-4 py-2.5"><span class="badge" style="${visitBadgeStyle}">${visit}</span></td>
+      <td class="px-4 py-2.5 text-ink-300 text-[10px]">${p.pic || '-'}</td>
+      <td class="px-4 py-2.5 text-ink-400 font-data text-[10px]">${p.telp || '-'}</td>
+      <td class="px-4 py-2.5">${statusBadge}</td>
+      <td class="px-4 py-2.5 text-ink-300 text-[10px]">${p.bahan || '-'}</td>
+      <td class="px-4 py-2.5 text-ink-400 text-[10px]">${p.totalKopi || '-'}</td>
+      <td class="px-4 py-2.5 text-[10px] max-w-[180px] leading-snug" style="${skipColor}">${info.skipReason || '-'}</td>
+      <td class="px-4 py-2.5 text-[10px] font-data" style="${skipColor}">${skipUntilText}</td>
+      <td class="px-4 py-2.5 text-[10px] max-w-[190px] leading-snug" style="${aiColor}">${aiKet}</td>
+      <td class="px-4 py-2.5">${aksiCell}</td>
+    </tr>`;
+  }).join('');
+
+  if (shops.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="13" class="px-4 py-6 text-center text-ink-300 text-xs italic">Tidak ada data leads</td></tr>`;
+  }
+}
+
+function filterMyLeadsTable() { renderMyLeadsTable(); }
 
 // ============================================================================
 // SKIP / TUNDA VISIT
