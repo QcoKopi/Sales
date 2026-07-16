@@ -1921,7 +1921,7 @@ function updateFullTable(data) {
 
     const hasV1 = info.visits.has('Pertama');
     const hasV2 = info.visits.has('Kedua');
-    const hasV3 = info.visits.has('Ketiga') || info.visits.has('Maksimal 3 kali Visit');
+    // hasV3 sudah dideklarasikan di atas
     let gapType = null;
     if (hasV1 && !hasV2 && !hasV3) gapType = 'V1→V2';
     else if (hasV1 && hasV2 && !hasV3) gapType = 'V2→V3';
