@@ -687,79 +687,88 @@
       </div>
     </div>
 
-        <!-- ============================================================ -->
-    <!-- TAB: PROFILE (All roles) — Kartu Tanda Pengenal -->
+            <!-- ============================================================ -->
+    <!-- TAB: PROFILE — Kartu Nama Profesional -->
     <!-- ============================================================ -->
     <section id="tab-profile" class="tab-panel hidden">
       <div class="mb-6 flex items-center justify-between">
         <div>
-          <h2 class="font-display text-xl text-ink-600">Kartu Pengenal</h2>
-          <p class="text-xs text-ink-400 mt-0.5">Tanda pengenal digital resmi Q.co Coffee Lab</p>
+          <h2 class="font-display text-xl text-ink-600">Kartu Nama</h2>
+          <p class="text-xs text-ink-400 mt-0.5">Kartu nama digital resmi Q.co Coffee Lab</p>
         </div>
         <button onclick="toggleProfileEdit()" id="btnProfileEdit" class="btn-ghost rounded-lg px-3.5 py-2 text-xs flex items-center gap-2">
-          <i class="fa-solid fa-gear text-[11px]"></i> Edit Profil
+          <i class="fa-solid fa-pen text-[11px]"></i> Edit
         </button>
       </div>
 
-      <!-- KARTU PENGENAL (Display + Capture Target) -->
+      <!-- KARTU NAMA (Capture Target) -->
       <div class="max-w-sm mx-auto" id="profileCardDisplay">
-        <div id="idCardCapture" class="card rounded-2xl overflow-hidden relative" style="background: linear-gradient(180deg, #FAF9F5 0%, #F4F2EC 100%);">
-          <!-- Header Pattern -->
-          <div class="h-24 relative overflow-hidden" style="background: linear-gradient(135deg, #5C4130 0%, #2E2015 100%);">
-            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 12px 12px;"></div>
-            <div class="absolute top-3 left-0 right-0 text-center">
-              <p class="text-[9px] font-black tracking-[0.25em] text-white/70 uppercase">Q.co Coffee Lab &amp; Roastery</p>
-            </div>
-            <div class="absolute bottom-0 left-0 right-0 h-8 bg-porcelain-100" style="border-radius: 16px 16px 0 0;"></div>
-          </div>
+        <div id="idCardCapture" class="card rounded-2xl overflow-hidden relative" style="background: #FFFFFF; box-shadow: 0 4px 24px rgba(43,36,30,0.08);">
 
-          <!-- Foto Tengah (WAJIB) -->
-          <div class="flex justify-center -mt-4 relative z-10">
-            <div id="idCardPhotoBox" class="w-8 h-8 rounded-full border-2 border-porcelain-100 overflow-hidden shadow-md flex items-center justify-center bg-porcelain-300">
-              <img id="profile_photo_preview" src="" alt="Foto" class="w-full h-full object-cover hidden">
-              <span id="profile_avatar_fallback" class="font-display font-bold text-[10px] text-espresso-500">SL</span>
-            </div>
-          </div>
+          <!-- Header Strip -->
+          <div class="h-3" style="background: linear-gradient(90deg, #5C4130, #8A6249, #5C4130);"></div>
 
-          <!-- Info -->
-          <div class="text-center px-6 pt-4 pb-2">
-            <h3 id="profile_display_name" class="font-display text-xl font-bold text-ink-600">Nama Sales</h3>
-            <p class="text-[10px] text-espresso-500 font-bold uppercase tracking-[0.15em] mt-1">Authorized Representative</p>
-            <div class="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-moss-50 border border-moss-100">
-              <span class="w-1.5 h-1.5 rounded-full bg-moss-500"></span>
-              <span class="text-[9px] font-bold text-moss-600 uppercase tracking-wider">Verified</span>
+          <!-- Top Section: Brand + Foto -->
+          <div class="px-6 pt-5 pb-4 flex items-start gap-4">
+            <!-- Foto Kecil Proporsional -->
+            <div class="shrink-0">
+              <div id="idCardPhotoBox" class="w-14 h-14 rounded-full border-2 border-porcelain-300 overflow-hidden shadow-sm flex items-center justify-center bg-porcelain-200">
+                <img id="profile_photo_preview" src="" alt="Foto" class="w-full h-full object-cover hidden">
+                <span id="profile_avatar_fallback" class="font-display font-bold text-lg text-espresso-500">SL</span>
+              </div>
+            </div>
+
+            <!-- Nama & Jabatan -->
+            <div class="flex-1 min-w-0 pt-0.5">
+              <h3 id="profile_display_name" class="font-display text-lg font-bold text-ink-600 leading-tight">Nama Sales</h3>
+              <p class="text-[10px] text-ink-400 font-medium uppercase tracking-wider mt-0.5">Authorized Representative</p>
+              <div class="flex items-center gap-1.5 mt-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-moss-500"></span>
+                <span class="text-[9px] font-bold text-moss-600 uppercase tracking-wider">Q.co Coffee Lab</span>
+              </div>
             </div>
           </div>
 
-          <!-- Divider -->
-          <div class="px-6 py-3">
-            <div class="h-px bg-porcelain-400"></div>
+          <!-- Divider elegan -->
+          <div class="px-6">
+            <div class="h-px" style="background: linear-gradient(90deg, transparent, #E2DDD0, transparent);"></div>
           </div>
 
-          <!-- QR + Link Row -->
-          <div class="flex items-center justify-center gap-4 px-6 pb-4">
-            <div id="qrcode_local_box" class="p-1 bg-white rounded-lg border border-porcelain-400 shadow-sm shrink-0"></div>
-            <div class="text-left">
-              <p class="text-[9px] text-ink-300 uppercase tracking-widest">Hubungi via WhatsApp</p>
-              <a id="profile_link_anchor" href="#" target="_blank" class="text-[11px] text-espresso-600 font-data font-semibold">wa.me/62...</a>
+          <!-- Bottom Section: QR + Kontak -->
+          <div class="px-6 py-4 flex items-center gap-4">
+            <!-- QR Kecil -->
+            <div class="shrink-0">
+              <div id="qrcode_local_box" class="p-1 bg-white rounded-md border border-porcelain-400"></div>
+            </div>
+
+            <!-- Info Kontak -->
+            <div class="flex-1 min-w-0">
+              <p class="text-[9px] text-ink-300 uppercase tracking-widest mb-1">Hubungi via WhatsApp</p>
+              <a id="profile_link_anchor" href="#" target="_blank" class="text-xs text-espresso-600 font-data font-semibold hover:underline">wa.me/62...</a>
+              <p class="text-[8px] text-ink-300 mt-1.5 leading-relaxed">Scan QR atau klik link untuk terhubung langsung dengan sales representative kami.</p>
             </div>
           </div>
 
-          <!-- Footer Brand -->
-          <div class="px-6 pb-4 text-center">
-            <p class="text-[8px] text-ink-300 uppercase tracking-[0.2em]">Official Sales Profile • Q.co Coffee Lab</p>
+          <!-- Footer Strip -->
+          <div class="px-6 pb-4 pt-1">
+            <div class="h-px bg-porcelain-300 mb-3"></div>
+            <div class="flex items-center justify-between">
+              <p class="text-[8px] text-ink-300 uppercase tracking-[0.15em]">Official Sales Profile</p>
+              <div class="flex items-center gap-1">
+                <i class="fa-solid fa-mug-hot text-[8px] text-ink-300"></i>
+                <p class="text-[8px] text-ink-300">Q.co Coffee Lab &amp; Roastery</p>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Action Buttons -->
-        <div class="mt-4 space-y-3">
-          <button onclick="downloadIdCard()" class="w-full btn-primary rounded-xl py-3 text-sm flex items-center justify-center gap-2">
-            <i class="fa-solid fa-download text-sm"></i>
-            <span class="font-semibold">Download Kartu Pengenal</span>
+        <div class="mt-5 grid grid-cols-2 gap-3">
+          <button onclick="downloadIdCard()" class="btn-primary rounded-xl py-3 text-xs font-semibold flex items-center justify-center gap-2">
+            <i class="fa-solid fa-download text-[10px]"></i> Download
           </button>
-          <button onclick="shareIdCardToWA()" class="w-full bg-espresso-600 hover:bg-espresso-700 text-porcelain-100 rounded-xl py-3 text-sm flex items-center justify-center gap-2 transition">
-            <i class="fa-brands fa-whatsapp text-base"></i>
-            <span class="font-semibold">Bagikan Kartu via WhatsApp</span>
+          <button onclick="shareIdCardToWA()" class="bg-espresso-600 hover:bg-espresso-700 text-porcelain-100 rounded-xl py-3 text-xs font-semibold flex items-center justify-center gap-2 transition">
+            <i class="fa-brands fa-whatsapp text-[10px]"></i> Bagikan
           </button>
         </div>
       </div>
@@ -772,7 +781,7 @@
             <div>
               <label class="label-field">Foto Profile <span class="text-brick-500">*</span></label>
               <input type="file" id="profile_photo_input" accept="image/*" onchange="processProfilePhoto(event)" class="input-field text-xs">
-              <p class="text-[10px] text-ink-400 mt-1">Foto wajib di-upload untuk generate kartu pengenal.</p>
+              <p class="text-[10px] text-ink-400 mt-1">Foto wajib di-upload untuk generate kartu nama.</p>
             </div>
             <div>
               <label class="label-field">Nomor WA Anda (untuk QR) <span class="text-brick-500">*</span></label>
