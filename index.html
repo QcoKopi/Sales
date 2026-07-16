@@ -3,179 +3,1434 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Q.co Coffee Lab - Leads Manager</title>
-    <!-- Tailwind CSS v3 (Stabil, Cepat & Ringan) -->
+    <title>Q.co Coffee Lab — Leads Intelligence Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        zinc: {
-                            850: '#202024',
-                        }
+                        zinc: { 850: '#202024', 900: '#18181b', 950: '#09090b' },
+                        amber: { 450: '#f59e2a' }
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'monospace']
                     }
                 }
             }
         }
     </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(63, 63, 70, 0.5);
+        }
+        .metric-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .tag-category {
+            transition: all 0.2s ease;
+        }
+        .tag-category:hover {
+            transform: scale(1.05);
+        }
+        .progress-bar {
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .row-highlight {
+            transition: background-color 0.2s ease;
+        }
+        .row-highlight:hover {
+            background-color: rgba(245, 158, 11, 0.05);
+        }
+    </style>
+<base target="_blank">
 </head>
-<body class="bg-zinc-950 text-zinc-100 min-h-screen p-4 md:p-8">
+<body class="bg-zinc-950 text-zinc-100 min-h-screen">
 
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-zinc-800 pb-6 mb-8 gap-4">
-            <div>
-                <h1 class="text-2xl font-black tracking-wider text-amber-500">Q.CO LEADS MONITOR</h1>
-                <p class="text-sm text-zinc-400 mt-1">Sistem Pemantauan Sales Canvassing & Leads</p>
+    <!-- Header -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-zinc-800">
+        <div class="max-w-[1600px] mx-auto px-4 md:px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/20">
+                    <i class="fas fa-chart-line text-zinc-950 text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tight text-white">Q.CO <span class="text-amber-500">LEADS INTELLIGENCE</span></h1>
+                    <p class="text-xs text-zinc-400 font-medium">Dashboard Analisis Sales Canvassing & Coffee Shop Leads</p>
+                </div>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="fetchLeadsData()" class="bg-zinc-900 hover:bg-zinc-800 text-sm font-medium px-4 py-2 rounded-md border border-zinc-700 text-zinc-200 transition duration-150">
-                    Refresh Data
+                <div class="relative">
+                    <select id="filterSales" onchange="applyDashboardFilter()" 
+                            class="bg-zinc-900 border border-zinc-700 text-zinc-200 text-sm rounded-lg px-4 py-2.5 pr-10 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 appearance-none cursor-pointer min-w-[160px]">
+                        <option value="ALL">Semua Sales</option>
+                        <option value="Reza">Reza</option>
+                        <option value="Alby">Alby</option>
+                        <option value="Putra">Putra</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 text-xs pointer-events-none"></i>
+                </div>
+                <button onclick="fetchLeadsData()" class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
+                    <i class="fas fa-sync-alt text-xs"></i> Refresh
                 </button>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <!-- Ringkasan Metrik Singkat -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-lg shadow-sm">
-                <div class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Total Data Kunjungan</div>
-                <div id="metric-total" class="text-3xl font-bold mt-1 text-zinc-200">-</div>
-            </div>
-            <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-lg shadow-sm">
-                <div class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Status Closing</div>
-                <div id="metric-closing" class="text-3xl font-bold mt-1 text-emerald-500">-</div>
-            </div>
-            <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-lg shadow-sm">
-                <div class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Status On Going</div>
-                <div id="metric-ongoing" class="text-3xl font-bold mt-1 text-amber-500">-</div>
-            </div>
+    <main class="max-w-[1600px] mx-auto px-4 md:px-6 py-6 space-y-6">
+
+        <!-- Loading State -->
+        <div id="loadingState" class="flex flex-col items-center justify-center py-20">
+            <div class="w-12 h-12 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mb-4"></div>
+            <p class="text-zinc-400 text-sm animate-pulse">Memuat data intelijen dari Google Sheets...</p>
         </div>
 
-        <!-- Tabel Utama Data Leads -->
-        <div class="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden shadow-xl">
-            <div class="p-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
-                <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-400">Daftar Coffee Shop & Progres</h2>
-                <div id="loading-indicator" class="text-xs text-amber-500 font-medium animate-pulse">Memuat data dari Google Sheets...</div>
+        <!-- Dashboard Content -->
+        <div id="dashboardContent" class="hidden space-y-6">
+
+            <!-- KPI Row -->
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+                <div class="metric-card glass-panel rounded-xl p-4 border border-zinc-800">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">On Going</span>
+                    </div>
+                    <div id="kpiOngoing" class="text-2xl font-black text-white">-</div>
+                    <div id="kpiOngoingPct" class="text-[10px] text-emerald-400 font-medium mt-1">-</div>
+                </div>
+                <div class="metric-card glass-panel rounded-xl p-4 border border-zinc-800">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Visit 1</span>
+                    </div>
+                    <div id="kpiV1" class="text-2xl font-black text-white">-</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">Total Pertama</div>
+                </div>
+                <div class="metric-card glass-panel rounded-xl p-4 border border-zinc-800">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 rounded-full bg-amber-400"></div>
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Visit 2</span>
+                    </div>
+                    <div id="kpiV2" class="text-2xl font-black text-white">-</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">Total Kedua</div>
+                </div>
+                <div class="metric-card glass-panel rounded-xl p-4 border border-zinc-800">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 rounded-full bg-amber-300"></div>
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Visit 3</span>
+                    </div>
+                    <div id="kpiV3" class="text-2xl font-black text-white">-</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">Total Ketiga</div>
+                </div>
+                <div class="metric-card glass-panel rounded-xl p-4 border border-zinc-800">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Sampling</span>
+                    </div>
+                    <div id="kpiSampling" class="text-2xl font-black text-white">-</div>
+                    <div id="kpiSamplingRate" class="text-[10px] text-blue-400 font-medium mt-1">-</div>
+                </div>
+                <div class="metric-card glass-panel rounded-xl p-4 border border-zinc-800">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 rounded-full bg-rose-500"></div>
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Stop</span>
+                    </div>
+                    <div id="kpiStop" class="text-2xl font-black text-white">-</div>
+                    <div id="kpiStopPct" class="text-[10px] text-rose-400 font-medium mt-1">-</div>
+                </div>
+                <div class="metric-card glass-panel rounded-xl p-4 border border-zinc-800">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Need V2</span>
+                    </div>
+                    <div id="kpiNeedV2" class="text-2xl font-black text-purple-400">-</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">V1 → V2</div>
+                </div>
+                <div class="metric-card glass-panel rounded-xl p-4 border border-zinc-800">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 rounded-full bg-pink-500"></div>
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Need V3</span>
+                    </div>
+                    <div id="kpiNeedV3" class="text-2xl font-black text-pink-400">-</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">V2 → V3</div>
+                </div>
             </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-zinc-900 border-b border-zinc-800 text-zinc-400 text-xs font-bold uppercase tracking-wider">
-                            <th class="p-4">Tanggal</th>
-                            <th class="p-4">Coffee Shop</th>
-                            <th class="p-4">Sales</th>
-                            <th class="p-4">PIC / Kontak</th>
-                            <th class="p-4">Visit</th>
-                            <th class="p-4">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leads-table-body" class="divide-y divide-zinc-800 text-sm">
-                        <!-- Data rows akan dimasukkan di sini oleh JS -->
-                    </tbody>
-                </table>
+
+            <!-- Auto Reminder Control Panel -->
+            <div class="glass-panel rounded-xl border border-emerald-500/30 overflow-hidden">
+                <div class="bg-gradient-to-r from-emerald-500/10 to-transparent px-5 py-4 border-b border-emerald-500/20">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                                <i class="fas fa-robot text-emerald-500 text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">Auto Reminder WA</h3>
+                                <p class="text-[10px] text-zinc-500">Notifikasi otomatis ke sales untuk gap visit</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div id="reminderPreviewBadge" class="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs">
+                                <span class="text-zinc-400">V2:</span> <span id="previewV2" class="text-amber-400 font-bold">0</span>
+                                <span class="text-zinc-600 mx-1">|</span>
+                                <span class="text-zinc-400">V3:</span> <span id="previewV3" class="text-pink-400 font-bold">0</span>
+                            </div>
+                            <button onclick="sendManualReminders()" id="btnManualReminder" 
+                                    class="bg-emerald-600 hover:bg-emerald-500 text-zinc-950 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg transition-all flex items-center gap-2">
+                                <i class="fas fa-paper-plane text-[10px]"></i> Kirim WA Sekarang
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-5 py-3 bg-zinc-900/50">
+                    <div class="flex items-center gap-4 text-[10px] text-zinc-500">
+                        <span><i class="fas fa-clock text-emerald-500/60 mr-1"></i> Auto-run: Setiap hari 08:00 WIB</span>
+                        <span><i class="fas fa-bell text-amber-500/60 mr-1"></i> Threshold V1→V2: 14 hari</span>
+                        <span><i class="fas fa-bell text-pink-500/60 mr-1"></i> Threshold V2→V3: 10 hari</span>
+                        <span id="lastReminderStatus" class="text-zinc-600 ml-auto"><i class="fas fa-history mr-1"></i> Belum pernah dikirim</span>
+                    </div>
+                </div>
+                <div id="reminderResultBox" class="hidden px-5 py-3 border-t border-zinc-800 bg-emerald-950/20">
+                    <div class="flex items-center gap-2 text-xs">
+                        <i class="fas fa-check-circle text-emerald-400"></i>
+                        <span id="reminderResultText" class="text-emerald-300 font-medium"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reminder Alert Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Reminder V1→V2 -->
+                <div class="glass-panel rounded-xl border border-amber-500/30 overflow-hidden">
+                    <div class="bg-gradient-to-r from-amber-500/10 to-transparent px-5 py-4 border-b border-amber-500/20 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                                <i class="fas fa-exclamation-triangle text-amber-500 text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider">Reminder: Butuh Visit Ke-2</h3>
+                                <p class="text-[10px] text-zinc-500">5 Coffee Shop terlama sejak Visit 1 (Status: On Going)</p>
+                            </div>
+                        </div>
+                        <span id="badgeNeedV2" class="bg-amber-500/20 text-amber-400 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30">0</span>
+                    </div>
+                    <div id="reminderV2List" class="divide-y divide-zinc-800/50">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Reminder V2→V3 -->
+                <div class="glass-panel rounded-xl border border-pink-500/30 overflow-hidden">
+                    <div class="bg-gradient-to-r from-pink-500/10 to-transparent px-5 py-4 border-b border-pink-500/20 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
+                                <i class="fas fa-clock text-pink-500 text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-pink-400 uppercase tracking-wider">Reminder: Butuh Visit Ke-3</h3>
+                                <p class="text-[10px] text-zinc-500">5 Coffee Shop terlama sejak Visit 2 (Status: On Going)</p>
+                            </div>
+                        </div>
+                        <span id="badgeNeedV3" class="bg-pink-500/20 text-pink-400 text-xs font-bold px-3 py-1 rounded-full border border-pink-500/30">0</span>
+                    </div>
+                    <div id="reminderV3List" class="divide-y divide-zinc-800/50">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Text Analysis Section -->
+            <div class="glass-panel rounded-xl border border-zinc-800 overflow-hidden">
+                <div class="px-5 py-4 border-b border-zinc-800 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                            <i class="fas fa-brain text-emerald-500 text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">AI Content Analysis</h3>
+                            <p class="text-[10px] text-zinc-500">Analisis & Standardisasi Kolom Teks Terbuka</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="switchAiTab('keterangan')" id="tabKeterangan" class="px-3 py-1.5 rounded-md text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all">Keterangan</button>
+                        <button onclick="switchAiTab('alasan2')" id="tabAlasan2" class="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-zinc-200 transition-all">Alasan V2</button>
+                        <button onclick="switchAiTab('alasan3')" id="tabAlasan3" class="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-zinc-200 transition-all">Alasan V3</button>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <div id="aiAnalysisContent" class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="glass-panel rounded-xl border border-zinc-800 p-5">
+                    <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4">Distribusi Bahan Espresso</h3>
+                    <div class="h-56">
+                        <canvas id="chartBahan"></canvas>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-xl border border-zinc-800 p-5">
+                    <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4">Kapasitas Penggunaan Kopi / Bulan</h3>
+                    <div class="h-56">
+                        <canvas id="chartKopi"></canvas>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-xl border border-zinc-800 p-5">
+                    <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4">Distribusi Area (Top 8)</h3>
+                    <div class="h-56">
+                        <canvas id="chartArea"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secondary Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="glass-panel rounded-xl border border-zinc-800 p-5">
+                    <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4">Lama Beroperasi Coffee Shop</h3>
+                    <div class="h-56">
+                        <canvas id="chartLama"></canvas>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-xl border border-zinc-800 p-5">
+                    <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4">Sampling Rate per Sales</h3>
+                    <div class="h-56">
+                        <canvas id="chartSampling"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gap Analysis Tables -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="glass-panel rounded-xl border border-zinc-800 overflow-hidden">
+                    <div class="px-5 py-4 border-b border-zinc-800">
+                        <h3 class="text-sm font-bold text-purple-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-route text-xs"></i> Gap Analysis: V1 → V2 (On Going)
+                        </h3>
+                        <p class="text-[10px] text-zinc-500 mt-1">Coffee shop yang sudah Visit 1 tetapi belum Visit 2</p>
+                    </div>
+                    <div class="overflow-x-auto max-h-80 overflow-y-auto scrollbar-hide">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-zinc-900 sticky top-0 z-10">
+                                <tr class="text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
+                                    <th class="px-4 py-3">Coffee Shop</th>
+                                    <th class="px-4 py-3">Sales</th>
+                                    <th class="px-4 py-3">Area</th>
+                                    <th class="px-4 py-3">Tanggal V1</th>
+                                    <th class="px-4 py-3">Hari</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gapV1V2Table" class="divide-y divide-zinc-800/50">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-xl border border-zinc-800 overflow-hidden">
+                    <div class="px-5 py-4 border-b border-zinc-800">
+                        <h3 class="text-sm font-bold text-pink-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-route text-xs"></i> Gap Analysis: V2 → V3 (On Going)
+                        </h3>
+                        <p class="text-[10px] text-zinc-500 mt-1">Coffee shop yang sudah Visit 2 tetapi belum Visit 3</p>
+                    </div>
+                    <div class="overflow-x-auto max-h-80 overflow-y-auto scrollbar-hide">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-zinc-900 sticky top-0 z-10">
+                                <tr class="text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
+                                    <th class="px-4 py-3">Coffee Shop</th>
+                                    <th class="px-4 py-3">Sales</th>
+                                    <th class="px-4 py-3">Area</th>
+                                    <th class="px-4 py-3">Tanggal V2</th>
+                                    <th class="px-4 py-3">Hari</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gapV2V3Table" class="divide-y divide-zinc-800/50">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full Data Table -->
+            <div class="glass-panel rounded-xl border border-zinc-800 overflow-hidden">
+                <div class="px-5 py-4 border-b border-zinc-800 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-bold text-zinc-200 uppercase tracking-wider">Daftar Lengkap Leads</h3>
+                        <p class="text-[10px] text-zinc-500 mt-1">Data kunjungan sales seluruhnya</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="searchTable" oninput="filterTable()" placeholder="Cari coffee shop..." 
+                               class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-amber-500 w-48">
+                    </div>
+                </div>
+                <div class="overflow-x-auto max-h-96 overflow-y-auto scrollbar-hide">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-zinc-900 sticky top-0 z-10">
+                            <tr class="text-zinc-400 font-bold uppercase tracking-wider text-[10px]">
+                                <th class="px-4 py-3">Tanggal</th>
+                                <th class="px-4 py-3">Sales</th>
+                                <th class="px-4 py-3">Coffee Shop</th>
+                                <th class="px-4 py-3">Area</th>
+                                <th class="px-4 py-3">Visit</th>
+                                <th class="px-4 py-3">Sampling</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3">Bahan</th>
+                                <th class="px-4 py-3">Kapasitas/Bln</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fullTableBody" class="divide-y divide-zinc-800/50">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    
+    <!-- Modal: Alasan Penundaan Visit -->
+    <div id="modalSkipVisit" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+        <div class="max-w-md w-full bg-zinc-900 border border-zinc-700 p-6 rounded-xl shadow-2xl relative">
+            <span onclick="tutupModalSkip()" class="absolute top-3 right-4 text-zinc-400 hover:text-white text-xl cursor-pointer font-bold">&times;</span>
+
+            <h2 class="text-lg font-black text-amber-500 uppercase tracking-wider mb-1">⏸️ Tunda Visit</h2>
+            <p class="text-xs text-zinc-400 mb-5">Berikan alasan mengapa visit belum/tidak dilakukan.</p>
+
+            <div class="space-y-4">
+                <div class="bg-zinc-950 border border-zinc-800 rounded-lg p-3">
+                    <div class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Coffee Shop</div>
+                    <div id="skip_shop_name" class="text-sm font-bold text-zinc-200 mt-0.5">-</div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-zinc-950 border border-zinc-800 rounded-lg p-3">
+                        <div class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Sales</div>
+                        <div id="skip_sales_name" class="text-sm font-bold text-zinc-200 mt-0.5">-</div>
+                    </div>
+                    <div class="bg-zinc-950 border border-zinc-800 rounded-lg p-3">
+                        <div class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Gap Visit</div>
+                        <div id="skip_gap_type" class="text-sm font-bold text-amber-400 mt-0.5">-</div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Alasan Penundaan *</label>
+                    <select id="skip_alasan_select" onchange="handleSkipAlasanChange()" 
+                            class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-500 mb-2">
+                        <option value="">-- Pilih Alasan --</option>
+                        <option value="PIC tidak bisa ditemui">PIC tidak bisa ditemui</option>
+                        <option value="Coffee shop sedang tutup/renovasi">Coffee shop sedang tutup/renovasi</option>
+                        <option value="Sales cuti/sakit">Sales cuti/sakit</option>
+                        <option value="Menunggu jawaban dari owner">Menunggu jawaban dari owner</option>
+                        <option value="Menunggu sample dari roastery">Menunggu sample dari roastery</option>
+                        <option value="Jadwal penuh/bentrok">Jadwal penuh/bentrok</option>
+                        <option value="Lainnya">Lainnya (tulis manual)</option>
+                    </select>
+                    <textarea id="skip_alasan_manual" rows="2" placeholder="Tulis alasan lainnya..." 
+                              class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-500 hidden"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Estimasi Tunda (hari)</label>
+                    <select id="skip_estimasi" class="w-full bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-amber-500">
+                        <option value="7">7 hari</option>
+                        <option value="14" selected>14 hari</option>
+                        <option value="30">30 hari</option>
+                        <option value="60">60 hari</option>
+                    </select>
+                    <p class="text-[10px] text-zinc-500 mt-1">Reminder WA tidak akan dikirim selama periode ini.</p>
+                </div>
+
+                <button onclick="simpanAlasanSkip()" id="btnSimpanSkip"
+                        class="w-full bg-amber-600 hover:bg-amber-500 text-zinc-950 font-bold uppercase tracking-wider py-3 rounded-lg transition duration-150">
+                    Simpan Alasan Penundaan
+                </button>
             </div>
         </div>
     </div>
 
-    <script>
-        // Menggunakan URL Google Apps Script Anda secara langsung
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNuh-E6Lutp5jC5_25YAvF2e_4fk2O7AzdbU_Sa3CSOFs2SmhhzC5urEgvsQt7hAQ/exec";
+    <!-- Panel: Daftar Penundaan Aktif -->
+    <div class="glass-panel rounded-xl border border-zinc-700 overflow-hidden">
+        <div class="px-5 py-4 border-b border-zinc-800 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-zinc-700/50 flex items-center justify-center">
+                    <i class="fas fa-pause-circle text-zinc-400 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-zinc-300 uppercase tracking-wider">Penundaan Visit Aktif</h3>
+                    <p class="text-[10px] text-zinc-500">Coffee shop yang sengaja ditunda dengan alasan</p>
+                </div>
+            </div>
+            <span id="badgeSkipAktif" class="bg-zinc-800 text-zinc-400 text-xs font-bold px-3 py-1 rounded-full border border-zinc-700">0</span>
+        </div>
+        <div class="overflow-x-auto max-h-64 overflow-y-auto scrollbar-hide">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-zinc-900 sticky top-0 z-10">
+                    <tr class="text-zinc-500 font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-4 py-3">Coffee Shop</th>
+                        <th class="px-4 py-3">Sales</th>
+                        <th class="px-4 py-3">Gap</th>
+                        <th class="px-4 py-3">Alasan</th>
+                        <th class="px-4 py-3">Tunda Sampai</th>
+                        <th class="px-4 py-3">Sisa</th>
+                        <th class="px-4 py-3">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="skipActiveTable" class="divide-y divide-zinc-800/50">
+                    <tr><td colspan="7" class="px-4 py-6 text-center text-zinc-500 text-xs italic">Tidak ada penundaan aktif</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
+</main>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNuh-E6Lutp5jC5_25YAvF2e_4fk2O7AzdbU_Sa3CSOFs2SmhhzC5urEgvsQt7hAQ/exec";
+        let rawData = [];
+        let charts = {};
+        let currentAiTab = 'keterangan';
+
+        // ============================================
+        // AI TEXT ANALYSIS ENGINE
+        // ============================================
+        function analyzeText(text, type) {
+            if (!text || text.trim() === '' || text.trim() === '-') return { category: 'Tidak Ada Keterangan', confidence: 1.0 };
+            const t = text.toLowerCase();
+
+            if (type === 'keterangan') {
+                if (t.includes('stop') && (t.includes('potensi') || t.includes('kecil'))) return { category: 'Potensi Kecil', confidence: 0.95 };
+                if (t.includes('stop') && t.includes('kontrak')) return { category: 'Kontrak Supplier Lain', confidence: 0.95 };
+                if (t.includes('stop') && (t.includes('tidak tertarik') || t.includes('tidak mau') || t.includes('tidak ingin'))) return { category: 'Tidak Tertarik', confidence: 0.9 };
+                if (t.includes('menolak') && t.includes('kontak')) return { category: 'Menolak Beri Kontak', confidence: 0.95 };
+                if (t.includes('menolak') && t.includes('informasi')) return { category: 'Menolak Beri Kontak', confidence: 0.95 };
+                if (t.includes('tidak bersedia') && t.includes('kontak')) return { category: 'Menolak Beri Kontak', confidence: 0.95 };
+                if (t.includes('sample') && (t.includes('sudah') || t.includes('memberikan') || t.includes('mengirim') || t.includes('dicoba') || t.includes('diberikan'))) return { category: 'Sample Sudah Diberikan', confidence: 0.9 };
+                if (t.includes('sample') && (t.includes('jadwal') || t.includes('atur') || t.includes('rencana'))) return { category: 'Jadwal Sampling', confidence: 0.85 };
+                if (t.includes('follow up') || t.includes('followup') || t.includes('follow-up')) return { category: 'Follow Up', confidence: 0.85 };
+                if (t.includes('menunggu') || t.includes('tunggu') || t.includes('menuggu')) return { category: 'Menunggu Jawaban', confidence: 0.85 };
+                if (t.includes('demo') || t.includes('dial in')) return { category: 'Rencana Demo', confidence: 0.9 };
+                if (t.includes('harga') || t.includes('mahal') || t.includes('budget') || t.includes('tinggi')) return { category: 'Masalah Harga', confidence: 0.85 };
+                if (t.includes('houseblend') || t.includes('arabika') || t.includes('robusta') || t.includes('gayo') || t.includes('bajawa') || t.includes('temanggung') || t.includes('argoporo')) return { category: 'Spesifikasi Bahan', confidence: 0.9 };
+                if (t.includes('owner') || t.includes('manager') || t.includes('headbar') || t.includes('barista') || t.includes('purchase')) return { category: 'Keterangan PIC', confidence: 0.8 };
+                if (t.includes('stop')) return { category: 'Penolakan / Stop', confidence: 0.8 };
+                return { category: 'Lainnya', confidence: 0.5 };
+            }
+
+            if (type === 'alasan2') {
+                if (t.includes('stop')) return { category: 'Stop', confidence: 0.95 };
+                if (t.includes('konfirmasi') && t.includes('sample')) return { category: 'Konfirmasi Sample', confidence: 0.95 };
+                if (t.includes('sample') && (t.includes('re schedule') || t.includes('reschedule') || t.includes('ulang') || t.includes('jadwal ulang'))) return { category: 'Reschedule Sampling', confidence: 0.9 };
+                if (t.includes('sample') && (t.includes('prepare') || t.includes('sesuai') || t.includes('make sure') || t.includes('buat'))) return { category: 'Persiapan Sample', confidence: 0.85 };
+                if (t.includes('kontak') && t.includes('hilang')) return { category: 'Kontak Hilang', confidence: 0.95 };
+                if (t.includes('tidak membalas') || t.includes('no response') || t.includes('tidak membalas chat')) return { category: 'No Response WA', confidence: 0.95 };
+                if (t.includes('follow up') || t.includes('followup')) {
+                    if (t.includes('owner') || t.includes('temu')) return { category: 'Follow Up - Bertemu Owner', confidence: 0.9 };
+                    if (t.includes('sample') || t.includes('sampling') || t.includes('semple')) return { category: 'Follow Up - Sampling', confidence: 0.9 };
+                    if (t.includes('rasa') || t.includes('hasil')) return { category: 'Follow Up - Rasa Sample', confidence: 0.9 };
+                    return { category: 'Follow Up', confidence: 0.85 };
+                }
+                if (t.includes('tanya') || t.includes('menanyakan')) return { category: 'Tanya Rasa Sample', confidence: 0.85 };
+                if (t.includes('analisa') || t.includes('analisis') || t.includes('kebutuhan')) return { category: 'Analisis Kebutuhan', confidence: 0.85 };
+                if (t.includes('bertemu') || t.includes('temu')) return { category: 'Bertemu PIC', confidence: 0.85 };
+                if (t.includes('lanjut') || t.includes('obrolan')) return { category: 'Lanjutkan Obrolan', confidence: 0.8 };
+                if (t.trim() === '-' || t.trim() === '') return { category: 'Tidak Ada Keterangan', confidence: 1.0 };
+                return { category: 'Lainnya', confidence: 0.5 };
+            }
+
+            if (type === 'alasan3') {
+                if (t.includes('konfirmasi')) return { category: 'Konfirmasi Sample', confidence: 0.95 };
+                if (t.includes('follow up') || t.includes('followup')) {
+                    if (t.includes('sample') || t.includes('diberikan') || t.includes('semple')) return { category: 'Follow Up Sample', confidence: 0.9 };
+                    return { category: 'Follow Up', confidence: 0.85 };
+                }
+                return { category: 'Lainnya', confidence: 0.5 };
+            }
+
+            return { category: 'Lainnya', confidence: 0.5 };
+        }
+
+        // ============================================
+        // DATA FETCHING
+        // ============================================
         async function fetchLeadsData() {
-            const loading = document.getElementById("loading-indicator");
-            const tbody = document.getElementById("leads-table-body");
-            
+            const loading = document.getElementById("loadingState");
+            const content = document.getElementById("dashboardContent");
+
             loading.classList.remove("hidden");
-            loading.innerText = "Memuat data dari Google Sheets...";
+            content.classList.add("hidden");
 
             try {
-                // Trik Utama: "redirect: 'follow'" memaksa browser mengikuti pengalihan server Google yang aman
                 const response = await fetch(WEB_APP_URL, {
                     method: "GET",
                     redirect: "follow"
                 });
-                
-                if (!response.ok) throw new Error("Gagal mengambil respon dari GAS");
-                
-                const rawData = await response.json();
-                
-                // Filter baris yang tidak memiliki nama coffee shop agar data tetap bersih
-                const data = rawData.filter(item => item["Nama Coffee Shop"] && String(item["Nama Coffee Shop"]).trim() !== "");
-                
-                // Urutkan data berdasarkan input terbaru
-                data.reverse();
 
-                // Hitung Metrik Ringkas
-                let totalLeads = data.length;
-                let totalClosing = data.filter(item => String(item["Closing"]).toLowerCase().includes("closing")).length;
-                let totalOnGoing = data.filter(item => {
-                    const status = String(item["Closing"] || "On Going").toLowerCase();
-                    return status.includes("go") || status.trim() === "" || status.includes("ongoing");
-                }).length;
+                if (!response.ok) throw new Error("Gagal fetch");
 
-                document.getElementById("metric-total").innerText = totalLeads;
-                document.getElementById("metric-closing").innerText = totalClosing;
-                document.getElementById("metric-ongoing").innerText = totalOnGoing;
+                rawData = await response.json();
+                rawData = rawData.filter(item => item["Nama Coffee Shop"] && String(item["Nama Coffee Shop"]).trim() !== "");
 
-                // Render Baris Tabel
-                tbody.innerHTML = "";
-                data.forEach(item => {
-                    const row = document.createElement("tr");
-                    row.className = "hover:bg-zinc-800/50 transition-colors border-b border-zinc-800";
-
-                    let statusBadge = "";
-                    const statusVal = String(item["Closing"] || "On Going").trim();
-                    if (statusVal.toLowerCase() === "closing") {
-                        statusBadge = `<span class="px-2 py-0.5 text-xs font-semibold rounded bg-emerald-950 text-emerald-400 border border-emerald-800">Closing</span>`;
-                    } else if (statusVal.toLowerCase() === "stop") {
-                        statusBadge = `<span class="px-2 py-0.5 text-xs font-semibold rounded bg-rose-950 text-rose-400 border border-rose-800">Stop</span>`;
-                    } else {
-                        statusBadge = `<span class="px-2 py-0.5 text-xs font-semibold rounded bg-amber-950 text-amber-400 border border-amber-800">On Going</span>`;
-                    }
-
-                    // Format Tanggal
-                    let formatTanggal = "-";
-                    if (item["Tanggal"]) {
-                        const parsedDate = new Date(item["Tanggal"]);
-                        if (!isNaN(parsedDate)) {
-                            formatTanggal = parsedDate.toLocaleDateString('id-ID');
-                        } else {
-                            formatTanggal = item["Tanggal"]; // fallback jika format teks unik
-                        }
-                    }
-
-                    row.innerHTML = `
-                        <td class="p-4 text-zinc-400 font-mono">${formatTanggal}</td>
-                        <td class="p-4 font-bold text-zinc-200">
-                            ${item["Nama Coffee Shop"] || '-'}
-                            <div class="text-xs font-normal text-zinc-500 mt-0.5">${item["Area"] || ''}</div>
-                        </td>
-                        <td class="p-4 text-zinc-300">${item["Sales"] || '-'}</td>
-                        <td class="p-4">
-                            <div class="text-zinc-200">${item["Nama PIC"] || '-'}</div>
-                            <div class="text-xs text-zinc-500 font-mono mt-0.5">${item["Telp PIC"] || '-'}</div>
-                        </td>
-                        <td class="p-4">
-                            <span class="px-2 py-0.5 text-xs font-medium rounded bg-zinc-800 text-zinc-300">${item["Visit Ke"] || 'Pertama'}</span>
-                        </td>
-                        <td class="p-4">${statusBadge}</td>
-                    `;
-                    tbody.appendChild(row);
-                });
+                applyDashboardFilter();
 
                 loading.classList.add("hidden");
+                content.classList.remove("hidden");
             } catch (error) {
-                console.error("Error Detail:", error);
-                loading.innerText = "Gagal memuat data sheet. Pastikan Anda telah men-deploy ulang GAS sebagai 'New Version'.";
-                loading.classList.remove("text-amber-500");
-                loading.classList.add("text-rose-500");
+                console.error("Error:", error);
+                loading.innerHTML = `<p class="text-rose-400 text-sm">Gagal memuat data. Pastikan GAS sudah di-deploy.</p>`;
             }
         }
 
-        // Panggil saat halaman siap
-        window.addEventListener("DOMContentLoaded", fetchLeadsData);
+        // ============================================
+        // DASHBOARD LOGIC
+        // ============================================
+        function applyDashboardFilter() {
+            const salesFilter = document.getElementById("filterSales").value;
+
+            const filtered = salesFilter === "ALL" 
+                ? rawData 
+                : rawData.filter(r => String(r["Sales"] || "").trim() === salesFilter);
+
+            // Fetch skip data if not cached
+            if (skipDataCache.length === 0) {
+                fetchSkipData();
+            }
+
+            // Build shop tracking
+            const shops = {};
+            filtered.forEach(row => {
+                const shop = String(row["Nama Coffee Shop"] || "").trim();
+                const sales = String(row["Sales"] || "").trim();
+                const visit = String(row["Visit Ke"] || "").trim();
+                const closing = String(row["Closing"] || "On Going").trim().toLowerCase();
+                const dateStr = row["Tanggal"];
+                const area = String(row["Area"] || "").trim();
+
+                if (!shop) return;
+
+                if (!shops[shop]) {
+                    shops[shop] = {
+                        sales: sales,
+                        visits: new Set(),
+                        status: closing,
+                        latestDate: null,
+                        firstDate: null,
+                        area: area,
+                        v1Date: null,
+                        v2Date: null,
+                        v3Date: null
+                    };
+                }
+
+                shops[shop].visits.add(visit);
+                if (closing === 'stop') shops[shop].status = 'stop';
+
+                const d = parseDate(dateStr);
+                if (d) {
+                    if (!shops[shop].firstDate || d < shops[shop].firstDate) shops[shop].firstDate = d;
+                    if (!shops[shop].latestDate || d > shops[shop].latestDate) shops[shop].latestDate = d;
+
+                    if (visit === 'Pertama') shops[shop].v1Date = d;
+                    if (visit === 'Kedua') shops[shop].v2Date = d;
+                    if (visit === 'Ketiga') shops[shop].v3Date = d;
+                }
+            });
+
+            // KPI Calculations
+            const ongoingShops = Object.entries(shops).filter(([_, s]) => s.status !== 'stop');
+            const stopShops = Object.entries(shops).filter(([_, s]) => s.status === 'stop');
+            const totalShops = Object.keys(shops).length;
+
+            let v1Count = 0, v2Count = 0, v3Count = 0, maxCount = 0;
+            let samplingYes = 0, samplingTotal = 0;
+
+            filtered.forEach(row => {
+                const visit = String(row["Visit Ke"] || "").trim();
+                const closing = String(row["Closing"] || "On Going").trim().toLowerCase();
+                const sampling = String(row["Sampling"] || "").trim();
+
+                if (closing === 'on going' || closing === 'ongoing') {
+                    if (visit === 'Pertama') v1Count++;
+                    if (visit === 'Kedua') v2Count++;
+                    if (visit === 'Ketiga') v3Count++;
+                    if (visit === 'Maksimal 3 kali Visit') maxCount++;
+
+                    if (sampling === 'Ya') samplingYes++;
+                    if (sampling === 'Ya' || sampling === 'Tidak') samplingTotal++;
+                }
+            });
+
+            // Need V2 and V3 (On Going only, exclude skipped)
+            const needV2 = [];
+            const needV3 = [];
+
+            Object.entries(shops).forEach(([name, info]) => {
+                if (info.status === 'stop') return;
+                const hasV1 = info.visits.has('Pertama');
+                const hasV2 = info.visits.has('Kedua');
+                const hasV3 = info.visits.has('Ketiga') || info.visits.has('Maksimal 3 kali Visit');
+
+                if (hasV1 && !hasV2 && !hasV3) {
+                    if (!isShopSkipped(name, 'V1→V2')) {
+                        needV2.push({ name, sales: info.sales, date: info.v1Date, area: info.area });
+                    }
+                }
+                if (hasV1 && hasV2 && !hasV3) {
+                    if (!isShopSkipped(name, 'V2→V3')) {
+                        needV3.push({ name, sales: info.sales, date: info.v2Date, area: info.area });
+                    }
+                }
+            });
+
+            // Update KPIs
+            updateKPIs({
+                ongoing: ongoingShops.length,
+                stop: stopShops.length,
+                total: totalShops,
+                v1: v1Count,
+                v2: v2Count,
+                v3: v3Count,
+                max: maxCount,
+                samplingYes,
+                samplingTotal,
+                needV2: needV2.length,
+                needV3: needV3.length
+            });
+
+            // Update Reminders
+            updateReminders(needV2, needV3);
+
+            // Update Auto Reminder Preview
+            updateReminderPreview(needV2, needV3);
+
+            // Update Gap Tables
+            updateGapTables(needV2, needV3);
+
+            // Update AI Analysis
+            updateAiAnalysis(filtered);
+
+            // Update Charts
+            updateCharts(filtered, ongoingShops.length);
+
+            // Update Full Table
+            updateFullTable(filtered);
+        }
+
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            try {
+                // Try MM/DD/YYYY format first
+                const parts = String(dateStr).split('/');
+                if (parts.length === 3) {
+                    const d = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
+                    if (!isNaN(d.getTime())) return d;
+                }
+                const d = new Date(dateStr);
+                if (!isNaN(d.getTime())) return d;
+            } catch (e) {}
+            return null;
+        }
+
+        function daysSince(date) {
+            if (!date) return '-';
+            const now = new Date();
+            const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+            return diff;
+        }
+
+        function formatDate(date) {
+            if (!date) return '-';
+            return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function updateKPIs(kpi) {
+            document.getElementById("kpiOngoing").innerText = kpi.ongoing;
+            document.getElementById("kpiOngoingPct").innerText = kpi.total > 0 ? ((kpi.ongoing / kpi.total) * 100).toFixed(1) + '% dari total' : '0%';
+            document.getElementById("kpiV1").innerText = kpi.v1;
+            document.getElementById("kpiV2").innerText = kpi.v2;
+            document.getElementById("kpiV3").innerText = kpi.v3;
+            document.getElementById("kpiSampling").innerText = kpi.samplingYes;
+            document.getElementById("kpiSamplingRate").innerText = kpi.samplingTotal > 0 ? ((kpi.samplingYes / kpi.samplingTotal) * 100).toFixed(1) + '% rate' : '0%';
+            document.getElementById("kpiStop").innerText = kpi.stop;
+            document.getElementById("kpiStopPct").innerText = kpi.total > 0 ? ((kpi.stop / kpi.total) * 100).toFixed(1) + '% dari total' : '0%';
+            document.getElementById("kpiNeedV2").innerText = kpi.needV2;
+            document.getElementById("kpiNeedV3").innerText = kpi.needV3;
+        }
+
+        function updateReminders(needV2, needV3) {
+            // Sort by oldest date
+            needV2.sort((a, b) => (a.date || new Date(9999,0,1)) - (b.date || new Date(9999,0,1)));
+            needV3.sort((a, b) => (a.date || new Date(9999,0,1)) - (b.date || new Date(9999,0,1)));
+
+            document.getElementById("badgeNeedV2").innerText = needV2.length;
+            document.getElementById("badgeNeedV3").innerText = needV3.length;
+
+            const v2Container = document.getElementById("reminderV2List");
+            v2Container.innerHTML = '';
+            needV2.slice(0, 5).forEach((item, idx) => {
+                const days = daysSince(item.date);
+                const urgency = days > 60 ? 'text-rose-400' : days > 30 ? 'text-amber-400' : 'text-emerald-400';
+                const barColor = days > 60 ? 'bg-rose-500' : days > 30 ? 'bg-amber-500' : 'bg-emerald-500';
+                const barWidth = Math.min((days / 90) * 100, 100);
+
+                v2Container.innerHTML += `
+                    <div class="px-5 py-3 row-highlight group">
+                        <div class="flex justify-between items-start mb-1">
+                            <div>
+                                <span class="text-xs font-bold text-zinc-200">${item.name}</span>
+                                <span class="text-[10px] text-zinc-500 ml-2">${item.sales}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="bukaModalSkip('${item.name.replace(/'/g, "\'")}', '${item.sales}', 'V1→V2')" 
+                                        class="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] bg-zinc-800 hover:bg-amber-600 text-zinc-400 hover:text-zinc-950 px-2 py-0.5 rounded font-bold border border-zinc-700">
+                                    ⏸️ Tunda
+                                </button>
+                                <span class="text-[10px] font-mono font-bold ${urgency}">${days} hari</span>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-zinc-500 mb-1.5">${item.area || 'Area tidak diketahui'} • V1: ${formatDate(item.date)}</div>
+                        <div class="w-full bg-zinc-800 rounded-full h-1">
+                            <div class="${barColor} h-1 rounded-full progress-bar" style="width: ${barWidth}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            if (needV2.length === 0) {
+                v2Container.innerHTML = `<div class="px-5 py-6 text-center text-zinc-500 text-xs italic">Semua coffee shop sudah visit ke-2 atau status Stop. Good job!</div>`;
+            }
+
+            const v3Container = document.getElementById("reminderV3List");
+            v3Container.innerHTML = '';
+            needV3.slice(0, 5).forEach((item, idx) => {
+                const days = daysSince(item.date);
+                const urgency = days > 60 ? 'text-rose-400' : days > 30 ? 'text-amber-400' : 'text-emerald-400';
+                const barColor = days > 60 ? 'bg-rose-500' : days > 30 ? 'bg-amber-500' : 'bg-emerald-500';
+                const barWidth = Math.min((days / 90) * 100, 100);
+
+                v3Container.innerHTML += `
+                    <div class="px-5 py-3 row-highlight group">
+                        <div class="flex justify-between items-start mb-1">
+                            <div>
+                                <span class="text-xs font-bold text-zinc-200">${item.name}</span>
+                                <span class="text-[10px] text-zinc-500 ml-2">${item.sales}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="bukaModalSkip('${item.name.replace(/'/g, "\'")}', '${item.sales}', 'V2→V3')" 
+                                        class="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] bg-zinc-800 hover:bg-amber-600 text-zinc-400 hover:text-zinc-950 px-2 py-0.5 rounded font-bold border border-zinc-700">
+                                    ⏸️ Tunda
+                                </button>
+                                <span class="text-[10px] font-mono font-bold ${urgency}">${days} hari</span>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-zinc-500 mb-1.5">${item.area || 'Area tidak diketahui'} • V2: ${formatDate(item.date)}</div>
+                        <div class="w-full bg-zinc-800 rounded-full h-1">
+                            <div class="${barColor} h-1 rounded-full progress-bar" style="width: ${barWidth}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            if (needV3.length === 0) {
+                v3Container.innerHTML = `<div class="px-5 py-6 text-center text-zinc-500 text-xs italic">Semua coffee shop sudah visit ke-3 atau status Stop. Good job!</div>`;
+            }
+        }
+
+        function updateGapTables(needV2, needV3) {
+            const v2Table = document.getElementById("gapV1V2Table");
+            needV2.sort((a, b) => (a.date || new Date(9999,0,1)) - (b.date || new Date(9999,0,1)));
+            v2Table.innerHTML = needV2.map(item => `
+                <tr class="row-highlight">
+                    <td class="px-4 py-2.5 font-semibold text-zinc-200">${item.name}</td>
+                    <td class="px-4 py-2.5 text-zinc-400">${item.sales}</td>
+                    <td class="px-4 py-2.5 text-zinc-500 text-[10px]">${item.area || '-'}</td>
+                    <td class="px-4 py-2.5 text-zinc-400 font-mono text-[10px]">${formatDate(item.date)}</td>
+                    <td class="px-4 py-2.5 text-amber-400 font-mono font-bold text-[10px]">${daysSince(item.date)} hari</td>
+                </tr>
+            `).join('');
+            if (needV2.length === 0) v2Table.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-zinc-500 text-xs italic">Tidak ada data</td></tr>`;
+
+            const v3Table = document.getElementById("gapV2V3Table");
+            needV3.sort((a, b) => (a.date || new Date(9999,0,1)) - (b.date || new Date(9999,0,1)));
+            v3Table.innerHTML = needV3.map(item => `
+                <tr class="row-highlight">
+                    <td class="px-4 py-2.5 font-semibold text-zinc-200">${item.name}</td>
+                    <td class="px-4 py-2.5 text-zinc-400">${item.sales}</td>
+                    <td class="px-4 py-2.5 text-zinc-500 text-[10px]">${item.area || '-'}</td>
+                    <td class="px-4 py-2.5 text-zinc-400 font-mono text-[10px]">${formatDate(item.date)}</td>
+                    <td class="px-4 py-2.5 text-pink-400 font-mono font-bold text-[10px]">${daysSince(item.date)} hari</td>
+                </tr>
+            `).join('');
+            if (needV3.length === 0) v3Table.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-zinc-500 text-xs italic">Tidak ada data</td></tr>`;
+        }
+
+        // ============================================
+        // AI ANALYSIS
+        // ============================================
+        function switchAiTab(tab) {
+            currentAiTab = tab;
+            ['keterangan', 'alasan2', 'alasan3'].forEach(t => {
+                const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (t === tab) {
+                    btn.className = "px-3 py-1.5 rounded-md text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-all";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-zinc-200 transition-all";
+                }
+            });
+            applyDashboardFilter();
+        }
+
+        function updateAiAnalysis(data) {
+            const salesFilter = document.getElementById("filterSales").value;
+            const filtered = salesFilter === "ALL" ? data : data.filter(r => String(r["Sales"] || "").trim() === salesFilter);
+
+            const categories = {};
+            const rawTexts = [];
+
+            let fieldName = '';
+            if (currentAiTab === 'keterangan') fieldName = 'Keterangan tambahan';
+            else if (currentAiTab === 'alasan2') fieldName = 'Alasan visit ke 2';
+            else fieldName = 'Alasan Visit ke 3';
+
+            filtered.forEach(row => {
+                const text = String(row[fieldName] || "").trim();
+                if (!text || text === '-') return;
+                const result = analyzeText(text, currentAiTab);
+                if (!categories[result.category]) categories[result.category] = { count: 0, texts: [] };
+                categories[result.category].count++;
+                categories[result.category].texts.push(text);
+            });
+
+            // Sort by count
+            const sorted = Object.entries(categories).sort((a, b) => b[1].count - a[1].count);
+            const total = sorted.reduce((sum, [, v]) => sum + v.count, 0);
+
+            const container = document.getElementById("aiAnalysisContent");
+
+            // Column 1: Distribution
+            let distHtml = `<div class="space-y-3">
+                <h4 class="text-xs font-bold text-zinc-300 uppercase tracking-wider mb-3">Distribusi Kategori</h4>
+                <div class="space-y-2">`;
+
+            sorted.forEach(([cat, info]) => {
+                const pct = total > 0 ? ((info.count / total) * 100).toFixed(1) : 0;
+                const barWidth = pct;
+                distHtml += `
+                    <div>
+                        <div class="flex justify-between text-[10px] mb-1">
+                            <span class="text-zinc-300 font-medium">${cat}</span>
+                            <span class="text-zinc-500">${info.count} (${pct}%)</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 rounded-full h-1.5">
+                            <div class="bg-emerald-500 h-1.5 rounded-full progress-bar" style="width: ${barWidth}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            distHtml += `</div></div>`;
+
+            // Column 2: Tag Cloud
+            let tagHtml = `<div class="space-y-3">
+                <h4 class="text-xs font-bold text-zinc-300 uppercase tracking-wider mb-3">Kategori Tags</h4>
+                <div class="flex flex-wrap gap-2">`;
+            sorted.forEach(([cat, info]) => {
+                const pct = total > 0 ? ((info.count / total) * 100).toFixed(1) : 0;
+                const size = info.count > 10 ? 'text-xs px-3 py-1.5' : info.count > 5 ? 'text-[10px] px-2.5 py-1' : 'text-[10px] px-2 py-0.5';
+                tagHtml += `<span class="tag-category ${size} rounded-full bg-zinc-800 border border-zinc-700 text-zinc-300 font-medium cursor-default">${cat} <span class="text-emerald-400">${info.count}</span></span>`;
+            });
+            tagHtml += `</div></div>`;
+
+            // Column 3: Sample Texts
+            let sampleHtml = `<div class="space-y-3">
+                <h4 class="text-xs font-bold text-zinc-300 uppercase tracking-wider mb-3">Contoh Teks Mentah</h4>
+                <div class="space-y-2 max-h-48 overflow-y-auto scrollbar-hide">`;
+
+            let sampleCount = 0;
+            sorted.forEach(([cat, info]) => {
+                if (sampleCount < 8) {
+                    const sampleText = info.texts[0];
+                    const result = analyzeText(sampleText, currentAiTab);
+                    sampleHtml += `
+                        <div class="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">${result.category}</span>
+                                <span class="text-[9px] text-zinc-600">${result.confidence > 0.9 ? 'High' : result.confidence > 0.7 ? 'Med' : 'Low'} confidence</span>
+                            </div>
+                            <p class="text-[10px] text-zinc-400 leading-relaxed italic">"${sampleText.substring(0, 120)}${sampleText.length > 120 ? '...' : ''}"</p>
+                        </div>
+                    `;
+                    sampleCount++;
+                }
+            });
+            sampleHtml += `</div></div>`;
+
+            container.innerHTML = distHtml + tagHtml + sampleHtml;
+        }
+
+        // ============================================
+        // CHARTS
+        // ============================================
+        function updateCharts(data, ongoingCount) {
+            const salesFilter = document.getElementById("filterSales").value;
+            const filtered = salesFilter === "ALL" ? data : data.filter(r => String(r["Sales"] || "").trim() === salesFilter);
+            const ongoingData = filtered.filter(r => String(r["Closing"] || "On Going").trim().toLowerCase() === 'on going');
+
+            // Destroy old charts
+            Object.values(charts).forEach(c => c.destroy());
+            charts = {};
+
+            const chartColors = {
+                amber: 'rgba(245, 158, 11, 0.8)',
+                amberLight: 'rgba(245, 158, 11, 0.2)',
+                emerald: 'rgba(16, 185, 129, 0.8)',
+                emeraldLight: 'rgba(16, 185, 129, 0.2)',
+                blue: 'rgba(59, 130, 246, 0.8)',
+                blueLight: 'rgba(59, 130, 246, 0.2)',
+                purple: 'rgba(139, 92, 246, 0.8)',
+                purpleLight: 'rgba(139, 92, 246, 0.2)',
+                pink: 'rgba(236, 72, 153, 0.8)',
+                pinkLight: 'rgba(236, 72, 153, 0.2)',
+                rose: 'rgba(244, 63, 94, 0.8)',
+                roseLight: 'rgba(244, 63, 94, 0.2)',
+                cyan: 'rgba(6, 182, 212, 0.8)',
+                cyanLight: 'rgba(6, 182, 212, 0.2)',
+            };
+
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#a1a1aa', font: { size: 10, family: 'Inter' } } }
+                },
+                scales: {
+                    x: { ticks: { color: '#71717a', font: { size: 9 } }, grid: { color: 'rgba(63, 63, 70, 0.3)' } },
+                    y: { ticks: { color: '#71717a', font: { size: 9 } }, grid: { color: 'rgba(63, 63, 70, 0.3)' } }
+                }
+            };
+
+            // Bahan Espresso Chart
+            const bahanCounts = {};
+            ongoingData.forEach(r => {
+                const b = String(r["Bahan Espresso"] || "Tidak Diketahui").trim();
+                if (b) bahanCounts[b] = (bahanCounts[b] || 0) + 1;
+            });
+            charts.bahan = new Chart(document.getElementById("chartBahan"), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(bahanCounts),
+                    datasets: [{
+                        data: Object.values(bahanCounts),
+                        backgroundColor: [chartColors.amber, chartColors.emerald, chartColors.blue, chartColors.purple, chartColors.pink, chartColors.rose, chartColors.cyan],
+                        borderWidth: 0
+                    }]
+                },
+                options: { ...commonOptions, cutout: '65%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 9 } } } } }
+            });
+
+            // Total Kopi Chart
+            const kopiCounts = {};
+            ongoingData.forEach(r => {
+                const k = String(r["Total Penggunaan Kopi per bulan"] || "Tidak Diketahui").trim();
+                if (k) kopiCounts[k] = (kopiCounts[k] || 0) + 1;
+            });
+            const sortedKopi = Object.entries(kopiCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+            charts.kopi = new Chart(document.getElementById("chartKopi"), {
+                type: 'bar',
+                data: {
+                    labels: sortedKopi.map(([k]) => k.length > 12 ? k.substring(0, 12) + '...' : k),
+                    datasets: [{
+                        label: 'Jumlah',
+                        data: sortedKopi.map(([, v]) => v),
+                        backgroundColor: chartColors.amber,
+                        borderRadius: 4,
+                        borderSkipped: false
+                    }]
+                },
+                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { x: { ...commonOptions.scales.x, ticks: { ...commonOptions.scales.x.ticks, maxRotation: 45 } }, y: commonOptions.scales.y } }
+            });
+
+            // Area Chart
+            const areaCounts = {};
+            ongoingData.forEach(r => {
+                const a = String(r["Area"] || "Tidak Diketahui").trim();
+                if (a) areaCounts[a] = (areaCounts[a] || 0) + 1;
+            });
+            const sortedArea = Object.entries(areaCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+            charts.area = new Chart(document.getElementById("chartArea"), {
+                type: 'bar',
+                data: {
+                    labels: sortedArea.map(([a]) => a.length > 10 ? a.substring(0, 10) + '...' : a),
+                    datasets: [{
+                        label: 'Jumlah',
+                        data: sortedArea.map(([, v]) => v),
+                        backgroundColor: chartColors.purple,
+                        borderRadius: 4,
+                        borderSkipped: false
+                    }]
+                },
+                options: { ...commonOptions, plugins: { legend: { display: false } }, indexAxis: 'y', scales: { x: commonOptions.scales.x, y: commonOptions.scales.y } }
+            });
+
+            // Lama Beroperasi Chart
+            const lamaCounts = {};
+            ongoingData.forEach(r => {
+                const l = String(r["Sudah berapa lama beroprasi"] || "Tidak Diketahui").trim();
+                if (l) lamaCounts[l] = (lamaCounts[l] || 0) + 1;
+            });
+            const lamaOrder = ['<6 bulan', '6 bulan - 1 Tahun', '1 - 2 Tahun', 'Diatas 2 tahun'];
+            const lamaLabels = lamaOrder.filter(l => lamaCounts[l]);
+            const lamaData = lamaLabels.map(l => lamaCounts[l] || 0);
+            charts.lama = new Chart(document.getElementById("chartLama"), {
+                type: 'polarArea',
+                data: {
+                    labels: lamaLabels,
+                    datasets: [{
+                        data: lamaData,
+                        backgroundColor: [chartColors.cyan, chartColors.emerald, chartColors.amber, chartColors.purple],
+                        borderWidth: 0
+                    }]
+                },
+                options: { ...commonOptions, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 9 } } } }, scales: { r: { ticks: { color: '#71717a', backdropColor: 'transparent' }, grid: { color: 'rgba(63, 63, 70, 0.3)' } } } }
+            });
+
+            // Sampling Rate by Sales
+            const salesList = ['Reza', 'Alby', 'Putra'];
+            const samplingData = salesList.map(s => {
+                const salesRows = data.filter(r => String(r["Sales"] || "").trim() === s && String(r["Closing"] || "").trim().toLowerCase() === 'on going');
+                const yes = salesRows.filter(r => String(r["Sampling"] || "").trim() === 'Ya').length;
+                const total = salesRows.filter(r => { const sam = String(r["Sampling"] || "").trim(); return sam === 'Ya' || sam === 'Tidak'; }).length;
+                return total > 0 ? ((yes / total) * 100).toFixed(1) : 0;
+            });
+            charts.sampling = new Chart(document.getElementById("chartSampling"), {
+                type: 'bar',
+                data: {
+                    labels: salesList,
+                    datasets: [{
+                        label: 'Sampling Rate (%)',
+                        data: samplingData,
+                        backgroundColor: [chartColors.blue, chartColors.emerald, chartColors.amber],
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { y: { ...commonOptions.scales.y, max: 100, ticks: { ...commonOptions.scales.y.ticks, callback: v => v + '%' } } } }
+            });
+        }
+
+        // ============================================
+        // FULL TABLE
+        // ============================================
+        function updateFullTable(data) {
+            const tbody = document.getElementById("fullTableBody");
+            const salesFilter = document.getElementById("filterSales").value;
+            const search = document.getElementById("searchTable").value.toLowerCase();
+
+            let filtered = data;
+            if (salesFilter !== "ALL") {
+                filtered = filtered.filter(r => String(r["Sales"] || "").trim() === salesFilter);
+            }
+            if (search) {
+                filtered = filtered.filter(r => String(r["Nama Coffee Shop"] || "").toLowerCase().includes(search));
+            }
+
+            // Sort by date descending
+            filtered.sort((a, b) => {
+                const da = parseDate(a["Tanggal"]);
+                const db = parseDate(b["Tanggal"]);
+                return (db || 0) - (da || 0);
+            });
+
+            tbody.innerHTML = filtered.slice(0, 100).map(row => {
+                const status = String(row["Closing"] || "On Going").trim();
+                const statusBadge = status.toLowerCase() === 'closing' 
+                    ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">Closing</span>`
+                    : status.toLowerCase() === 'stop'
+                    ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-800">Stop</span>`
+                    : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-800">On Going</span>`;
+
+                const sampling = String(row["Sampling"] || "Tidak").trim() === 'Ya'
+                    ? `<span class="text-blue-400 font-bold"><i class="fas fa-flask text-[8px] mr-1"></i>Ya</span>`
+                    : `<span class="text-zinc-500">Tidak</span>`;
+
+                const visit = String(row["Visit Ke"] || "").trim();
+                const visitBadge = visit === 'Pertama' ? 'bg-zinc-800 text-zinc-300' : visit === 'Kedua' ? 'bg-amber-950/50 text-amber-400' : 'bg-pink-950/50 text-pink-400';
+
+                return `
+                    <tr class="row-highlight">
+                        <td class="px-4 py-2.5 text-zinc-400 font-mono text-[10px]">${formatDate(parseDate(row["Tanggal"]))}</td>
+                        <td class="px-4 py-2.5 text-zinc-300 font-medium text-[10px]">${row["Sales"] || '-'}</td>
+                        <td class="px-4 py-2.5 text-zinc-200 font-bold text-[11px]">${row["Nama Coffee Shop"] || '-'}</td>
+                        <td class="px-4 py-2.5 text-zinc-500 text-[10px]">${row["Area"] || '-'}</td>
+                        <td class="px-4 py-2.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${visitBadge}">${visit}</span></td>
+                        <td class="px-4 py-2.5 text-[10px]">${sampling}</td>
+                        <td class="px-4 py-2.5">${statusBadge}</td>
+                        <td class="px-4 py-2.5 text-zinc-500 text-[10px]">${row["Bahan Espresso"] || '-'}</td>
+                        <td class="px-4 py-2.5 text-zinc-400 text-[10px]">${row["Total Penggunaan Kopi per bulan"] || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateReminderPreview(needV2, needV3) {
+            document.getElementById("previewV2").innerText = needV2.length;
+            document.getElementById("previewV3").innerText = needV3.length;
+
+            const badge = document.getElementById("reminderPreviewBadge");
+            if (needV2.length > 0 || needV3.length > 0) {
+                badge.classList.add("border-amber-500/30");
+                badge.classList.remove("border-zinc-700");
+            } else {
+                badge.classList.remove("border-amber-500/30");
+                badge.classList.add("border-zinc-700");
+            }
+        }
+
+        async function sendManualReminders() {
+            const btn = document.getElementById("btnManualReminder");
+            const resultBox = document.getElementById("reminderResultBox");
+            const resultText = document.getElementById("reminderResultText");
+            const status = document.getElementById("lastReminderStatus");
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-[10px]"></i> Mengirim...';
+
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=scanReminders`);
+                const result = await response.json();
+
+                if (result.success) {
+                    resultText.innerText = `Reminder terkirim: ${result.sent} WA (${result.v2} V2, ${result.v3} V3)`;
+                    resultBox.classList.remove("hidden");
+                    status.innerHTML = `<i class="fas fa-check text-emerald-500 mr-1"></i> Terakhir: ${new Date().toLocaleTimeString('id-ID')}`;
+
+                    // Auto hide after 5 seconds
+                    setTimeout(() => {
+                        resultBox.classList.add("hidden");
+                    }, 5000);
+                } else {
+                    resultText.innerText = "Gagal: " + result.message;
+                    resultBox.classList.remove("hidden");
+                    resultBox.classList.remove("bg-emerald-950/20");
+                    resultBox.classList.add("bg-rose-950/20");
+                }
+            } catch (e) {
+                resultText.innerText = "Error: " + e.message;
+                resultBox.classList.remove("hidden");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane text-[10px]"></i> Kirim WA Sekarang';
+            }
+        }
+
+        // ============================================
+        // SKIP VISIT MANAGEMENT
+        // ============================================
+        let skipDataCache = [];
+        let currentSkipShop = null;
+        let currentSkipSales = null;
+        let currentSkipGap = null;
+
+        async function fetchSkipData() {
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=getSkipData`);
+                const result = await response.json();
+                if (result.success) {
+                    skipDataCache = result.data || [];
+                    updateSkipTable();
+                }
+            } catch (e) {
+                console.error("Gagal fetch skip data:", e);
+            }
+        }
+
+        function isShopSkipped(shopName, gapType) {
+            const today = new Date();
+            return skipDataCache.some(skip => {
+                if (skip.CoffeeShop !== shopName) return false;
+                if (skip.GapType !== gapType) return false;
+                if (skip.Status !== 'Aktif') return false;
+                const untilDate = new Date(skip.UntilDate);
+                return untilDate >= today;
+            });
+        }
+
+        function bukaModalSkip(shopName, sales, gapType) {
+            currentSkipShop = shopName;
+            currentSkipSales = sales;
+            currentSkipGap = gapType;
+
+            document.getElementById("skip_shop_name").innerText = shopName;
+            document.getElementById("skip_sales_name").innerText = sales;
+            document.getElementById("skip_gap_type").innerText = gapType;
+            document.getElementById("skip_alasan_select").value = "";
+            document.getElementById("skip_alasan_manual").value = "";
+            document.getElementById("skip_alasan_manual").classList.add("hidden");
+            document.getElementById("skip_estimasi").value = "14";
+
+            document.getElementById("modalSkipVisit").classList.remove("hidden");
+        }
+
+        function tutupModalSkip() {
+            document.getElementById("modalSkipVisit").classList.add("hidden");
+            currentSkipShop = null;
+            currentSkipSales = null;
+            currentSkipGap = null;
+        }
+
+        function handleSkipAlasanChange() {
+            const val = document.getElementById("skip_alasan_select").value;
+            const manual = document.getElementById("skip_alasan_manual");
+            if (val === "Lainnya") {
+                manual.classList.remove("hidden");
+                manual.required = true;
+            } else {
+                manual.classList.add("hidden");
+                manual.required = false;
+                manual.value = "";
+            }
+        }
+
+        async function simpanAlasanSkip() {
+            const btn = document.getElementById("btnSimpanSkip");
+            const alasanSelect = document.getElementById("skip_alasan_select").value;
+            const alasanManual = document.getElementById("skip_alasan_manual").value.trim();
+            const estimasi = document.getElementById("skip_estimasi").value;
+
+            if (!alasanSelect) {
+                alert("Mohon pilih alasan penundaan!");
+                return;
+            }
+            if (alasanSelect === "Lainnya" && !alasanManual) {
+                alert("Mohon tulis alasan manual!");
+                return;
+            }
+
+            const alasan = alasanSelect === "Lainnya" ? alasanManual : alasanSelect;
+
+            btn.disabled = true;
+            btn.innerText = "Menyimpan...";
+
+            const payload = {
+                tipeDataForm: "skip_visit",
+                sales: currentSkipSales,
+                shop: currentSkipShop,
+                gapType: currentSkipGap,
+                alasan: alasan,
+                estimasiHari: parseInt(estimasi)
+            };
+
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert("Alasan penundaan berhasil disimpan!");
+                    tutupModalSkip();
+                    await fetchSkipData();
+                    applyDashboardFilter();
+                } else {
+                    alert("Gagal: " + result.message);
+                }
+            } catch (e) {
+                alert("Error: " + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Simpan Alasan Penundaan";
+            }
+        }
+
+        async function resolveSkip(skipId) {
+            if (!confirm("Yakin ingin menyelesaikan penundaan ini? Reminder akan aktif kembali.")) return;
+
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=resolveSkip&id=${skipId}`);
+                const result = await response.json();
+                if (result.success) {
+                    await fetchSkipData();
+                    applyDashboardFilter();
+                } else {
+                    alert("Gagal: " + result.message);
+                }
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        function updateSkipTable() {
+            const tbody = document.getElementById("skipActiveTable");
+            const today = new Date();
+
+            const activeSkips = skipDataCache.filter(skip => {
+                if (skip.Status !== 'Aktif') return false;
+                const until = new Date(skip.UntilDate);
+                return until >= today;
+            });
+
+            document.getElementById("badgeSkipAktif").innerText = activeSkips.length;
+
+            if (activeSkips.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-zinc-500 text-xs italic">Tidak ada penundaan aktif</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = activeSkips.map(skip => {
+                const until = new Date(skip.UntilDate);
+                const sisa = Math.ceil((until - today) / (1000 * 60 * 60 * 24));
+                const sisaColor = sisa <= 3 ? 'text-rose-400' : sisa <= 7 ? 'text-amber-400' : 'text-emerald-400';
+
+                return `
+                    <tr class="row-highlight">
+                        <td class="px-4 py-2.5 font-semibold text-zinc-200 text-[11px]">${skip.CoffeeShop}</td>
+                        <td class="px-4 py-2.5 text-zinc-400 text-[10px]">${skip.Sales}</td>
+                        <td class="px-4 py-2.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-zinc-800 text-amber-400">${skip.GapType}</span></td>
+                        <td class="px-4 py-2.5 text-zinc-400 text-[10px] max-w-[150px] truncate" title="${skip.Alasan}">${skip.Alasan}</td>
+                        <td class="px-4 py-2.5 text-zinc-400 font-mono text-[10px]">${formatDate(until)}</td>
+                        <td class="px-4 py-2.5 font-mono font-bold text-[10px] ${sisaColor}">${sisa} hari</td>
+                        <td class="px-4 py-2.5">
+                            <button onclick="resolveSkip('${skip.ID}')" class="text-[10px] bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-zinc-950 px-2 py-1 rounded font-bold transition">
+                                ✓ Selesai
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterTable() {
+            applyDashboardFilter();
+        }
+
+        // Init
+        window.addEventListener("DOMContentLoaded", () => {
+            fetchLeadsData();
+            fetchSkipData();
+        });
     </script>
 </body>
 </html>
