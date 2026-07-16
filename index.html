@@ -119,26 +119,26 @@
                 <div class="metric-card glass-panel rounded-xl p-4 border border-zinc-800">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-2 h-2 rounded-full bg-amber-500"></div>
-                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Visit 1</span>
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Butuh V2</span>
                     </div>
                     <div id="kpiV1" class="text-2xl font-black text-white">-</div>
-                    <div class="text-[10px] text-zinc-500 mt-1">Total Pertama</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">V1 saja, belum V2</div>
                 </div>
                 <div class="metric-card glass-panel rounded-xl p-4 border border-zinc-800">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-2 h-2 rounded-full bg-amber-400"></div>
-                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Visit 2</span>
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Butuh V3</span>
                     </div>
                     <div id="kpiV2" class="text-2xl font-black text-white">-</div>
-                    <div class="text-[10px] text-zinc-500 mt-1">Total Kedua</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">V1+V2, belum V3</div>
                 </div>
                 <div class="metric-card glass-panel rounded-xl p-4 border border-zinc-800">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-2 h-2 rounded-full bg-amber-300"></div>
-                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Visit 3</span>
+                        <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">V3 Done</span>
                     </div>
                     <div id="kpiV3" class="text-2xl font-black text-white">-</div>
-                    <div class="text-[10px] text-zinc-500 mt-1">Total Ketiga</div>
+                    <div class="text-[10px] text-zinc-500 mt-1">V1+V2+V3 selesai</div>
                 </div>
                 <div class="metric-card glass-panel rounded-xl p-4 border border-zinc-800">
                     <div class="flex items-center gap-2 mb-2">
@@ -746,25 +746,33 @@
                 }
             });
 
-            // KPI Calculations
+            // KPI Calculations — BERBASIS UNIQUE COFFEE SHOP (bukan per baris)
             const ongoingShops = Object.entries(shops).filter(([_, s]) => s.status !== 'stop');
             const stopShops = Object.entries(shops).filter(([_, s]) => s.status === 'stop');
             const totalShops = Object.keys(shops).length;
 
-            let v1Count = 0, v2Count = 0, v3Count = 0, maxCount = 0;
-            let samplingYes = 0, samplingTotal = 0;
+            // Hitung per unique shop, bukan per baris/row
+            let v1OnlyCount = 0;  // Shop yang HANYA punya V1 (butuh V2)
+            let v2ReadyCount = 0; // Shop yang sudah V1+V2 (butuh V3)
+            let v3DoneCount = 0;  // Shop yang sudah V3 (done)
 
+            Object.entries(shops).forEach(([_, info]) => {
+                if (info.status === 'stop') return;
+                const hasV1 = info.visits.has('Pertama');
+                const hasV2 = info.visits.has('Kedua');
+                const hasV3 = info.visits.has('Ketiga') || info.visits.has('Maksimal 3 kali Visit');
+
+                if (hasV1 && !hasV2 && !hasV3) v1OnlyCount++;
+                else if (hasV1 && hasV2 && !hasV3) v2ReadyCount++;
+                else if (hasV3) v3DoneCount++;
+            });
+
+            // Sampling tetap per baris (karena satu shop bisa sampling di visit berbeda)
+            let samplingYes = 0, samplingTotal = 0;
             filtered.forEach(row => {
-                const visit = String(row["Visit Ke"] || "").trim();
                 const closing = String(row["Closing"] || "On Going").trim().toLowerCase();
                 const sampling = String(row["Sampling"] || "").trim();
-
                 if (closing === 'on going' || closing === 'ongoing') {
-                    if (visit === 'Pertama') v1Count++;
-                    if (visit === 'Kedua') v2Count++;
-                    if (visit === 'Ketiga') v3Count++;
-                    if (visit === 'Maksimal 3 kali Visit') maxCount++;
-
                     if (sampling === 'Ya') samplingYes++;
                     if (sampling === 'Ya' || sampling === 'Tidak') samplingTotal++;
                 }
@@ -797,10 +805,9 @@
                 ongoing: ongoingShops.length,
                 stop: stopShops.length,
                 total: totalShops,
-                v1: v1Count,
-                v2: v2Count,
-                v3: v3Count,
-                max: maxCount,
+                v1: v1OnlyCount,
+                v2: v2ReadyCount,
+                v3: v3DoneCount,
                 samplingYes,
                 samplingTotal,
                 needV2: needV2.length,
