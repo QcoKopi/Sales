@@ -146,6 +146,7 @@
   }
   @keyframes toastIn { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 </style>
+<base target="_blank">
 </head>
 <body class="min-h-screen text-ink">
 
@@ -295,56 +296,56 @@
       <div id="dashboardContent" class="hidden space-y-6">
 
         <!-- KPI Row 1 — "sample vial" cards -->
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-  <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#5F7A52">
-    <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#5F7A52"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">On Going</span></div>
-    <div id="kpiOngoing" class="text-2xl font-bold font-data text-ink-600">–</div>
-    <div id="kpiOngoingPct" class="text-[10px] mt-1" style="color:#5F7A52">–</div>
-  </div>
-  <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#B8863B">
-    <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#B8863B"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">Butuh V2</span></div>
-    <div id="kpiV1" class="text-2xl font-bold font-data text-ink-600">–</div>
-    <div class="text-[10px] text-ink-300 mt-1">V1 saja, belum V2</div>
-  </div>
-  <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#BC6C4A">
-    <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#BC6C4A"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">Butuh V3</span></div>
-    <div id="kpiV2" class="text-2xl font-bold font-data text-ink-600">–</div>
-    <div class="text-[10px] text-ink-300 mt-1">V1+V2, belum V3</div>
-  </div>
-  <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#8A6249">
-    <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#8A6249"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">V3 Done</span></div>
-    <div id="kpiV3" class="text-2xl font-bold font-data text-ink-600">–</div>
-    <div class="text-[10px] text-ink-300 mt-1">V1+V2+V3 selesai</div>
-  </div>
-  <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#5B7290">
-    <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#5B7290"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">Sampling</span></div>
-    <div id="kpiSampling" class="text-2xl font-bold font-data text-ink-600">–</div>
-    <div id="kpiSamplingRate" class="text-[10px] mt-1" style="color:#5B7290">–</div>
-  </div>
-  <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#A6443D">
-    <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#A6443D"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">Stop</span></div>
-    <div id="kpiStop" class="text-2xl font-bold font-data text-ink-600">–</div>
-    <div id="kpiStopPct" class="text-[10px] mt-1" style="color:#A6443D">–</div>
-  </div>
-</div>
-<!-- KPI Row 2 — Follow-up metrics -->
-<div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-  <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#96692A">
-    <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#96692A"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">Need V2</span></div>
-    <div id="kpiNeedV2" class="text-2xl font-bold font-data" style="color:#96692A">–</div>
-    <div class="text-[10px] text-ink-300 mt-1">V1 → V2</div>
-  </div>
-  <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#9A5638">
-    <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#9A5638"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">Need V3</span></div>
-    <div id="kpiNeedV3" class="text-2xl font-bold font-data" style="color:#9A5638">–</div>
-    <div class="text-[10px] text-ink-300 mt-1">V2 → V3</div>
-  </div>
-  <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#7B6B4D">
-    <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#7B6B4D"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">V3 On Going</span></div>
-    <div id="kpiV3Ongoing" class="text-2xl font-bold font-data" style="color:#7B6B4D">–</div>
-    <div class="text-[10px] text-ink-300 mt-1">V3 selesai, belum closing</div>
-  </div>
-</div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#5F7A52">
+            <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#5F7A52"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">On Going</span></div>
+            <div id="kpiOngoing" class="text-2xl font-bold font-data text-ink-600">–</div>
+            <div id="kpiOngoingPct" class="text-[10px] mt-1" style="color:#5F7A52">–</div>
+          </div>
+          <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#B8863B">
+            <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#B8863B"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">Butuh V2</span></div>
+            <div id="kpiV1" class="text-2xl font-bold font-data text-ink-600">–</div>
+            <div class="text-[10px] text-ink-300 mt-1">V1 saja, belum V2</div>
+          </div>
+          <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#BC6C4A">
+            <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#BC6C4A"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">Butuh V3</span></div>
+            <div id="kpiV2" class="text-2xl font-bold font-data text-ink-600">–</div>
+            <div class="text-[10px] text-ink-300 mt-1">V1+V2, belum V3</div>
+          </div>
+          <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#8A6249">
+            <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#8A6249"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">V3 Done</span></div>
+            <div id="kpiV3" class="text-2xl font-bold font-data text-ink-600">–</div>
+            <div class="text-[10px] text-ink-300 mt-1">V1+V2+V3 selesai</div>
+          </div>
+          <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#5B7290">
+            <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#5B7290"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">Sampling</span></div>
+            <div id="kpiSampling" class="text-2xl font-bold font-data text-ink-600">–</div>
+            <div id="kpiSamplingRate" class="text-[10px] mt-1" style="color:#5B7290">–</div>
+          </div>
+          <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#A6443D">
+            <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#A6443D"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">Stop</span></div>
+            <div id="kpiStop" class="text-2xl font-bold font-data text-ink-600">–</div>
+            <div id="kpiStopPct" class="text-[10px] mt-1" style="color:#A6443D">–</div>
+          </div>
+        </div>
+        <!-- KPI Row 2 — Follow-up metrics -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#96692A">
+            <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#96692A"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">Need V2</span></div>
+            <div id="kpiNeedV2" class="text-2xl font-bold font-data" style="color:#96692A">–</div>
+            <div class="text-[10px] text-ink-300 mt-1">V1 → V2</div>
+          </div>
+          <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#9A5638">
+            <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#9A5638"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">Need V3</span></div>
+            <div id="kpiNeedV3" class="text-2xl font-bold font-data" style="color:#9A5638">–</div>
+            <div class="text-[10px] text-ink-300 mt-1">V2 → V3</div>
+          </div>
+          <div class="vial-card card card-hover rounded-xl p-4" style="border-left-color:#7B6B4D">
+            <div class="flex items-center gap-2 mb-2"><span class="status-dot" style="background:#7B6B4D"></span><span class="text-[9px] font-bold text-ink-400 uppercase tracking-wider">V3 On Going</span></div>
+            <div id="kpiV3Ongoing" class="text-2xl font-bold font-data" style="color:#7B6B4D">–</div>
+            <div class="text-[10px] text-ink-300 mt-1">V3 selesai, belum closing</div>
+          </div>
+        </div>
 
         <!-- Auto Reminder Control Panel (Admin action w/ real WA side-effects) -->
         <div class="card rounded-xl overflow-hidden">
@@ -393,49 +394,29 @@
           <div id="aiAnalysisContent" class="p-5 grid grid-cols-1 lg:grid-cols-4 gap-6"></div>
         </div>
 
-       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-  <div class="card rounded-xl overflow-hidden">
-    <div class="bg-honey-50 px-5 py-4 border-b border-porcelain-400 flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-honey-100 flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation text-honey-600 text-xs"></i></div>
-        <div>
-          <h3 class="text-sm font-bold text-honey-600 uppercase tracking-wider">Butuh Visit Ke-2</h3>
-          <p class="text-[10px] text-ink-400">Terlama sejak Visit 1 (On Going)</p>
+        <!-- Charts -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="card rounded-xl p-5">
+            <h3 class="text-xs font-bold text-ink-600 uppercase tracking-wider mb-3">Bahan Espresso</h3>
+            <div class="h-56"><canvas id="chartBahan"></canvas></div>
+          </div>
+          <div class="card rounded-xl p-5">
+            <h3 class="text-xs font-bold text-ink-600 uppercase tracking-wider mb-3">Kapasitas Kopi / Bulan</h3>
+            <div class="h-56"><canvas id="chartKopi"></canvas></div>
+          </div>
+          <div class="card rounded-xl p-5">
+            <h3 class="text-xs font-bold text-ink-600 uppercase tracking-wider mb-3">Sebaran Area</h3>
+            <div class="h-56"><canvas id="chartArea"></canvas></div>
+          </div>
+          <div class="card rounded-xl p-5">
+            <h3 class="text-xs font-bold text-ink-600 uppercase tracking-wider mb-3">Lama Beroperasi</h3>
+            <div class="h-56"><canvas id="chartLama"></canvas></div>
+          </div>
+          <div class="card rounded-xl p-5 md:col-span-2">
+            <h3 class="text-xs font-bold text-ink-600 uppercase tracking-wider mb-3">Sampling Rate per Sales</h3>
+            <div class="h-48"><canvas id="chartSampling"></canvas></div>
+          </div>
         </div>
-      </div>
-      <span id="badgeNeedV2" class="badge bg-honey-100 text-honey-600">0</span>
-    </div>
-    <div id="reminderV2List" class="divide-y divide-porcelain-300 max-h-[420px] overflow-y-auto scrollbar-thin"></div>
-  </div>
-
-  <div class="card rounded-xl overflow-hidden">
-    <div class="bg-clay-50 px-5 py-4 border-b border-porcelain-400 flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-clay-100 flex items-center justify-center"><i class="fa-regular fa-clock text-clay-600 text-xs"></i></div>
-        <div>
-          <h3 class="text-sm font-bold text-clay-600 uppercase tracking-wider">Butuh Visit Ke-3</h3>
-          <p class="text-[10px] text-ink-400">Terlama sejak Visit 2 (On Going)</p>
-        </div>
-      </div>
-      <span id="badgeNeedV3" class="badge bg-clay-100 text-clay-600">0</span>
-    </div>
-    <div id="reminderV3List" class="divide-y divide-porcelain-300 max-h-[420px] overflow-y-auto scrollbar-thin"></div>
-  </div>
-
-  <div class="card rounded-xl overflow-hidden">
-    <div class="bg-espresso-50 px-5 py-4 border-b border-porcelain-400 flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-espresso-100 flex items-center justify-center"><i class="fa-solid fa-hourglass-half text-espresso-600 text-xs"></i></div>
-        <div>
-          <h3 class="text-sm font-bold text-espresso-600 uppercase tracking-wider">V3 Selesai - On Going</h3>
-          <p class="text-[10px] text-ink-400">Sudah 3x visit, belum closing</p>
-        </div>
-      </div>
-      <span id="badgeV3Ongoing" class="badge bg-espresso-100 text-espresso-600">0</span>
-    </div>
-    <div id="reminderV3OngoingList" class="divide-y divide-porcelain-300 max-h-[420px] overflow-y-auto scrollbar-thin"></div>
-  </div>
-</div>
 
         <!-- Gap Analysis -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -503,7 +484,7 @@
         <p class="text-xs text-ink-400 mt-0.5" id="reminderSubtitle">Coffee shop yang perlu ditindaklanjuti</p>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="card rounded-xl overflow-hidden">
           <div class="bg-honey-50 px-5 py-4 border-b border-porcelain-400 flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -530,6 +511,20 @@
             <span id="badgeNeedV3" class="badge bg-clay-100 text-clay-600">0</span>
           </div>
           <div id="reminderV3List" class="divide-y divide-porcelain-300 max-h-[420px] overflow-y-auto scrollbar-thin"></div>
+        </div>
+
+        <div class="card rounded-xl overflow-hidden">
+          <div class="bg-espresso-50 px-5 py-4 border-b border-porcelain-400 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-espresso-100 flex items-center justify-center"><i class="fa-solid fa-hourglass-half text-espresso-600 text-xs"></i></div>
+              <div>
+                <h3 class="text-sm font-bold text-espresso-600 uppercase tracking-wider">V3 Selesai - On Going</h3>
+                <p class="text-[10px] text-ink-400">Sudah 3x visit, belum closing</p>
+              </div>
+            </div>
+            <span id="badgeV3Ongoing" class="badge bg-espresso-100 text-espresso-600">0</span>
+          </div>
+          <div id="reminderV3OngoingList" class="divide-y divide-porcelain-300 max-h-[420px] overflow-y-auto scrollbar-thin"></div>
         </div>
       </div>
 
@@ -689,79 +684,90 @@
     </div>
 
     <!-- ============================================================ -->
-<!-- TAB: PROFILE (All roles) — Kartu Pengenal Profesional -->
-<!-- ============================================================ -->
-<section id="tab-profile" class="tab-panel hidden">
-  <div class="mb-6 flex items-center justify-between">
-    <div>
-      <h2 class="font-display text-xl text-ink-600">Kartu Pengenal</h2>
-      <p class="text-xs text-ink-400 mt-0.5">Badge digital resmi Q.co Coffee Lab</p>
-    </div>
-    <button onclick="toggleProfileEdit()" id="btnProfileEdit" class="btn-ghost rounded-lg px-3.5 py-2 text-xs flex items-center gap-2">
-      <i class="fa-solid fa-gear text-[11px]"></i> Edit Profil
-    </button>
-  </div>
-
-  <!-- KARTU PENGENAL (Display Mode) -->
-  <div class="max-w-sm mx-auto" id="profileCardDisplay">
-    <div class="card rounded-2xl overflow-hidden relative" style="background: linear-gradient(180deg, #FAF9F5 0%, #F4F2EC 100%);">
-      <div class="h-24 relative overflow-hidden" style="background: linear-gradient(135deg, #5C4130 0%, #2E2015 100%);">
-        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 12px 12px;"></div>
-        <div class="absolute bottom-0 left-0 right-0 h-8 bg-porcelain-100" style="border-radius: 16px 16px 0 0;"></div>
-      </div>
-      <div class="flex justify-center -mt-12 relative z-10">
-        <div class="w-24 h-24 rounded-full border-4 border-porcelain-100 bg-porcelain-200 overflow-hidden shadow-lg flex items-center justify-center" style="background: linear-gradient(135deg, #E9D6C3, #D4C4B0);">
-          <img id="profile_photo_preview" src="" alt="Foto" class="w-full h-full object-cover hidden">
-          <span id="profile_avatar_fallback" class="font-display font-bold text-3xl text-espresso-500">SL</span>
+    <!-- TAB: PROFILE (All roles) — Kartu Pengenal Profesional -->
+    <!-- ============================================================ -->
+    <section id="tab-profile" class="tab-panel hidden">
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <h2 class="font-display text-xl text-ink-600">Kartu Pengenal</h2>
+          <p class="text-xs text-ink-400 mt-0.5">Badge digital resmi Q.co Coffee Lab</p>
         </div>
-      </div>
-      <div class="text-center px-6 pt-4 pb-2">
-        <h3 id="profile_display_name" class="font-display text-xl font-bold text-ink-600">Nama Sales</h3>
-        <p class="text-[10px] text-espresso-500 font-bold uppercase tracking-[0.15em] mt-1">Authorized Representative</p>
-        <div class="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-moss-50 border border-moss-100">
-          <span class="w-1.5 h-1.5 rounded-full bg-moss-500"></span>
-          <span class="text-[9px] font-bold text-moss-600 uppercase tracking-wider">Q.co Coffee Lab</span>
-        </div>
-      </div>
-      <div class="px-6 py-3">
-        <div class="h-px bg-porcelain-400"></div>
-      </div>
-      <div class="flex flex-col items-center px-6 pb-4">
-        <div id="qrcode_local_box" class="p-1.5 bg-white rounded-lg border border-porcelain-400 shadow-sm"></div>
-        <p class="text-[9px] text-ink-300 mt-2 uppercase tracking-widest">Scan untuk WhatsApp</p>
-        <a id="profile_link_anchor" href="#" target="_blank" class="text-[10px] text-espresso-500 font-data mt-0.5">wa.me/62...</a>
-      </div>
-      <div class="px-6 pb-6">
-        <button onclick="shareProfileToLead()" class="w-full btn-primary rounded-xl py-3 text-sm flex items-center justify-center gap-2">
-          <i class="fa-brands fa-whatsapp text-base"></i>
-          <span class="font-semibold">Bagikan via WhatsApp</span>
+        <button onclick="toggleProfileEdit()" id="btnProfileEdit" class="btn-ghost rounded-lg px-3.5 py-2 text-xs flex items-center gap-2">
+          <i class="fa-solid fa-gear text-[11px]"></i> Edit Profil
         </button>
       </div>
-    </div>
-  </div>
 
-  <!-- EDIT MODE -->
-  <div id="profileEditForm" class="max-w-sm mx-auto hidden mt-4">
-    <div class="card rounded-xl p-6">
-      <h3 class="font-display text-base text-ink-600 mb-4">Pengaturan Profil</h3>
-      <div class="space-y-4">
-        <div>
-          <label class="label-field">Foto Profile</label>
-          <input type="file" id="profile_photo_input" accept="image/*" onchange="processProfilePhoto(event)" class="input-field text-xs">
+      <!-- KARTU PENGENAL (Display Mode) -->
+      <div class="max-w-sm mx-auto" id="profileCardDisplay">
+        <div class="card rounded-2xl overflow-hidden relative" style="background: linear-gradient(180deg, #FAF9F5 0%, #F4F2EC 100%);">
+          <!-- Header Pattern -->
+          <div class="h-24 relative overflow-hidden" style="background: linear-gradient(135deg, #5C4130 0%, #2E2015 100%);">
+            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 12px 12px;"></div>
+            <div class="absolute bottom-0 left-0 right-0 h-8 bg-porcelain-100" style="border-radius: 16px 16px 0 0;"></div>
+          </div>
+
+          <!-- Foto Tengah -->
+          <div class="flex justify-center -mt-12 relative z-10">
+            <div class="w-24 h-24 rounded-full border-4 border-porcelain-100 bg-porcelain-200 overflow-hidden shadow-lg flex items-center justify-center" style="background: linear-gradient(135deg, #E9D6C3, #D4C4B0);">
+              <img id="profile_photo_preview" src="" alt="Foto" class="w-full h-full object-cover hidden">
+              <span id="profile_avatar_fallback" class="font-display font-bold text-3xl text-espresso-500">SL</span>
+            </div>
+          </div>
+
+          <!-- Info -->
+          <div class="text-center px-6 pt-4 pb-2">
+            <h3 id="profile_display_name" class="font-display text-xl font-bold text-ink-600">Nama Sales</h3>
+            <p class="text-[10px] text-espresso-500 font-bold uppercase tracking-[0.15em] mt-1">Authorized Representative</p>
+            <div class="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-moss-50 border border-moss-100">
+              <span class="w-1.5 h-1.5 rounded-full bg-moss-500"></span>
+              <span class="text-[9px] font-bold text-moss-600 uppercase tracking-wider">Q.co Coffee Lab</span>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="px-6 py-3">
+            <div class="h-px bg-porcelain-400"></div>
+          </div>
+
+          <!-- QR Kecil -->
+          <div class="flex flex-col items-center px-6 pb-4">
+            <div id="qrcode_local_box" class="p-1.5 bg-white rounded-lg border border-porcelain-400 shadow-sm"></div>
+            <p class="text-[9px] text-ink-300 mt-2 uppercase tracking-widest">Scan untuk WhatsApp</p>
+            <a id="profile_link_anchor" href="#" target="_blank" class="text-[10px] text-espresso-500 font-data mt-0.5">wa.me/62...</a>
+          </div>
+
+          <!-- Share Button -->
+          <div class="px-6 pb-6">
+            <button onclick="shareProfileToLead()" class="w-full btn-primary rounded-xl py-3 text-sm flex items-center justify-center gap-2">
+              <i class="fa-brands fa-whatsapp text-base"></i>
+              <span class="font-semibold">Bagikan via WhatsApp</span>
+            </button>
+          </div>
         </div>
-        <div>
-          <label class="label-field">Nomor WA Anda (untuk QR)</label>
-          <input type="text" id="profile_input_wa" oninput="regenerateProfileCard()" placeholder="08xxxxxxxx" class="input-field font-data">
-        </div>
-        <div>
-          <label class="label-field">Nomor WA Klien (untuk kirim)</label>
-          <input type="text" id="lead_destination_wa" placeholder="08xxxxxxxx" class="input-field font-data">
-        </div>
-        <button onclick="toggleProfileEdit()" class="w-full btn-ghost rounded-lg py-2.5 text-sm">Selesai Edit</button>
       </div>
-    </div>
-  </div>
-</section>
+
+      <!-- EDIT MODE (Hidden by default) -->
+      <div id="profileEditForm" class="max-w-sm mx-auto hidden mt-4">
+        <div class="card rounded-xl p-6">
+          <h3 class="font-display text-base text-ink-600 mb-4">Pengaturan Profil</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="label-field">Foto Profile</label>
+              <input type="file" id="profile_photo_input" accept="image/*" onchange="processProfilePhoto(event)" class="input-field text-xs">
+            </div>
+            <div>
+              <label class="label-field">Nomor WA Anda (untuk QR)</label>
+              <input type="text" id="profile_input_wa" oninput="regenerateProfileCard()" placeholder="08xxxxxxxx" class="input-field font-data">
+            </div>
+            <div>
+              <label class="label-field">Nomor WA Klien (untuk kirim)</label>
+              <input type="text" id="lead_destination_wa" placeholder="08xxxxxxxx" class="input-field font-data">
+            </div>
+            <button onclick="toggleProfileEdit()" class="w-full btn-ghost rounded-lg py-2.5 text-sm">Selesai Edit</button>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- ============================================================ -->
     <!-- TAB: INPUT DATA (All roles) — Sales Entry Form -->
@@ -945,12 +951,12 @@
 
             <div>
               <label class="label-field">Status Akhir</label>
-<select id="closing" name="Closing" onchange="toggleClosingFields()" class="input-field">
-  <option value="On Going">On Going</option>
-  <option value="Closing">Menjadi Klien (Closing)</option>
-  <option value="Stop">Stop</option>
-</select>
-<p class="text-[10px] text-ink-400 mt-1">Setelah Visit 3, seharusnya status berubah menjadi <strong>Menjadi Klien</strong> atau <strong>Stop</strong>. Jika masih On Going, berikan alasan melalui fitur Tunda.</p>
+              <select id="closing" name="Closing" onchange="toggleClosingFields()" class="input-field">
+                <option value="On Going">On Going</option>
+                <option value="Closing">Menjadi Klien (Closing)</option>
+                <option value="Stop">Stop</option>
+              </select>
+              <p class="text-[10px] text-ink-400 mt-1">Setelah Visit 3, seharusnya status berubah menjadi <strong>Menjadi Klien</strong> atau <strong>Stop</strong>. Jika masih On Going, berikan alasan melalui fitur Tunda.</p>
             </div>
 
             <div id="closing_data_wrapper" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -2248,10 +2254,26 @@ function regenerateProfileCard() {
     const fullWaLink = `https://wa.me/${formatWA}`;
     anchor.href = fullWaLink;
     anchor.innerText = `wa.me/${formatWA}`;
-    new QRCode(qrBox, { text: fullWaLink, width: 128, height: 128, colorDark: "#2B241E", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+    new QRCode(qrBox, { text: fullWaLink, width: 80, height: 80, colorDark: "#2B241E", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
   } else {
     anchor.href = "#"; anchor.innerText = "Nomor WA kosong";
-    qrBox.innerHTML = "<span class='text-ink-300 text-xs text-center font-data'>QR Kosong</span>";
+    qrBox.innerHTML = "<span class='text-ink-300 text-[10px] text-center font-data block py-2'>QR Kosong</span>";
+  }
+}
+
+function toggleProfileEdit() {
+  const card = document.getElementById("profileCardDisplay");
+  const form = document.getElementById("profileEditForm");
+  const btn = document.getElementById("btnProfileEdit");
+  if (form.classList.contains("hidden")) {
+    form.classList.remove("hidden");
+    card.classList.add("hidden");
+    btn.innerHTML = '<i class="fa-solid fa-eye text-[11px]"></i> Lihat Kartu';
+  } else {
+    form.classList.add("hidden");
+    card.classList.remove("hidden");
+    btn.innerHTML = '<i class="fa-solid fa-gear text-[11px]"></i> Edit Profil';
+    regenerateProfileCard();
   }
 }
 
