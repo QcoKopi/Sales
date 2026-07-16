@@ -522,52 +522,138 @@
             if (!text || text.trim() === '' || text.trim() === '-') return { category: 'Tidak Ada Keterangan', confidence: 1.0 };
             const t = text.toLowerCase();
 
+            // === KETERANGAN TAMBAHAN ===
             if (type === 'keterangan') {
-                if (t.includes('stop') && (t.includes('potensi') || t.includes('kecil'))) return { category: 'Potensi Kecil', confidence: 0.95 };
-                if (t.includes('stop') && t.includes('kontrak')) return { category: 'Kontrak Supplier Lain', confidence: 0.95 };
-                if (t.includes('stop') && (t.includes('tidak tertarik') || t.includes('tidak mau') || t.includes('tidak ingin'))) return { category: 'Tidak Tertarik', confidence: 0.9 };
-                if (t.includes('menolak') && t.includes('kontak')) return { category: 'Menolak Beri Kontak', confidence: 0.95 };
-                if (t.includes('menolak') && t.includes('informasi')) return { category: 'Menolak Beri Kontak', confidence: 0.95 };
-                if (t.includes('tidak bersedia') && t.includes('kontak')) return { category: 'Menolak Beri Kontak', confidence: 0.95 };
-                if (t.includes('sample') && (t.includes('sudah') || t.includes('memberikan') || t.includes('mengirim') || t.includes('dicoba') || t.includes('diberikan'))) return { category: 'Sample Sudah Diberikan', confidence: 0.9 };
-                if (t.includes('sample') && (t.includes('jadwal') || t.includes('atur') || t.includes('rencana'))) return { category: 'Jadwal Sampling', confidence: 0.85 };
-                if (t.includes('follow up') || t.includes('followup') || t.includes('follow-up')) return { category: 'Follow Up', confidence: 0.85 };
-                if (t.includes('menunggu') || t.includes('tunggu') || t.includes('menuggu')) return { category: 'Menunggu Jawaban', confidence: 0.85 };
-                if (t.includes('demo') || t.includes('dial in')) return { category: 'Rencana Demo', confidence: 0.9 };
-                if (t.includes('harga') || t.includes('mahal') || t.includes('budget') || t.includes('tinggi')) return { category: 'Masalah Harga', confidence: 0.85 };
-                if (t.includes('houseblend') || t.includes('arabika') || t.includes('robusta') || t.includes('gayo') || t.includes('bajawa') || t.includes('temanggung') || t.includes('argoporo')) return { category: 'Spesifikasi Bahan', confidence: 0.9 };
-                if (t.includes('owner') || t.includes('manager') || t.includes('headbar') || t.includes('barista') || t.includes('purchase')) return { category: 'Keterangan PIC', confidence: 0.8 };
-                if (t.includes('stop')) return { category: 'Penolakan / Stop', confidence: 0.8 };
+                // STOP / PENOLAKAN (prioritas tinggi)
+                if (t.includes('stop') && (t.includes('potensi') || t.includes('kecil') || t.includes('sedikit'))) 
+                    return { category: 'Stop: Volume/Potensi Kecil', confidence: 0.95 };
+                if (t.includes('stop') && (t.includes('kontrak') || t.includes('langganan') || t.includes('roastery lain') || t.includes('supplier tetap'))) 
+                    return { category: 'Stop: Kontrak Supplier Lain', confidence: 0.95 };
+                if (t.includes('stop') && (t.includes('tidak tertarik') || t.includes('tidak mau') || t.includes('tidak ingin') || t.includes('menolak'))) 
+                    return { category: 'Stop: Tidak Tertarik', confidence: 0.9 };
+                if (t.includes('stop') && t.includes('harga')) 
+                    return { category: 'Stop: Masalah Harga', confidence: 0.9 };
+                if (t.includes('stop') && t.includes('roastery')) 
+                    return { category: 'Stop: Punya Roastery Sendiri', confidence: 0.9 };
+                if (t.includes('stop')) 
+                    return { category: 'Stop: Alasan Lain', confidence: 0.8 };
+
+                // KENDALA AKSES / KONTAK
+                if (t.includes('menolak') && (t.includes('kontak') || t.includes('informasi'))) 
+                    return { category: 'Kendala: Menolak Beri Kontak', confidence: 0.95 };
+                if (t.includes('tidak bersedia') && t.includes('kontak')) 
+                    return { category: 'Kendala: Menolak Beri Kontak', confidence: 0.95 };
+                if (t.includes('tidak bisa') && (t.includes('bertemu') || t.includes('temu') || t.includes('ketemu'))) 
+                    return { category: 'Kendala: Tidak Bisa Bertemu PIC', confidence: 0.9 };
+                if (t.includes('susah') && (t.includes('bertemu') || t.includes('temu'))) 
+                    return { category: 'Kendala: Tidak Bisa Bertemu PIC', confidence: 0.9 };
+                if (t.includes('owner') && (t.includes('tidak ada') || t.includes('sedang') || t.includes('diluar'))) 
+                    return { category: 'Kendala: PIC Sedang Tidak Ada', confidence: 0.9 };
+
+                // SAMPLE
+                if (t.includes('sample') && (t.includes('sudah') || t.includes('memberikan') || t.includes('mengirim') || t.includes('dicoba') || t.includes('diberikan') || t.includes('dikasih'))) 
+                    return { category: 'Sample: Sudah Diberikan', confidence: 0.9 };
+                if (t.includes('sample') && (t.includes('jadwal') || t.includes('atur') || t.includes('rencana') || t.includes('tetapkan'))) 
+                    return { category: 'Sample: Penjadwalan', confidence: 0.85 };
+                if (t.includes('menunggu') && t.includes('sample')) 
+                    return { category: 'Sample: Menunggu Sample', confidence: 0.85 };
+                if (t.includes('sample') && t.includes('kurang')) 
+                    return { category: 'Sample: Kurang/Tidak Sesuai', confidence: 0.85 };
+
+                // FOLLOW UP & JAWABAN
+                if (t.includes('follow up') || t.includes('followup') || t.includes('follow-up')) 
+                    return { category: 'Follow Up', confidence: 0.85 };
+                if (t.includes('menunggu') && (t.includes('jawaban') || t.includes('keputusan') || t.includes('acc'))) 
+                    return { category: 'Menunggu Keputusan', confidence: 0.85 };
+                if (t.includes('tunggu') && (t.includes('jawaban') || t.includes('keputusan'))) 
+                    return { category: 'Menunggu Keputusan', confidence: 0.85 };
+
+                // DEMO & PENJADWALAN
+                if (t.includes('demo') || t.includes('dial in') || t.includes('dialin')) 
+                    return { category: 'Rencana Demo/Dial In', confidence: 0.9 };
+                if (t.includes('atur') && (t.includes('jadwal') || t.includes('janji'))) 
+                    return { category: 'Penjadwalan Ulang', confidence: 0.85 };
+                if (t.includes('jadwal') && (t.includes('ulang') || t.includes('temu'))) 
+                    return { category: 'Penjadwalan Ulang', confidence: 0.85 };
+
+                // HARGA
+                if (t.includes('harga') || t.includes('mahal') || t.includes('budget') || t.includes('tinggi') || t.includes('tidak sesuai budget')) 
+                    return { category: 'Kendala: Masalah Harga', confidence: 0.85 };
+
+                // SPESIFIKASI BAHAN
+                if (t.includes('houseblend') || t.includes('arabika') || t.includes('robusta') || t.includes('gayo') || t.includes('bajawa') || t.includes('temanggung') || t.includes('argoporo') || t.includes('ciwidey')) 
+                    return { category: 'Spesifikasi Bahan', confidence: 0.9 };
+
+                // SUDAH JADI KLIEN / PELANGGAN
+                if (t.includes('sudah') && (t.includes('order') || t.includes('pelanggan') || t.includes('langganan') || t.includes('jadi pelanggan') || t.includes('sudah pernah'))) 
+                    return { category: 'Sudah Jadi Klien', confidence: 0.85 };
+                if (t.includes('sudah') && t.includes('suplayer') && t.includes('kita')) 
+                    return { category: 'Sudah Jadi Klien', confidence: 0.85 };
+
+                // KENDALA OPERASIONAL
+                if (t.includes('barista') && (t.includes('ganti') || t.includes('tidak ada') || t.includes('baru') || t.includes('kurang paham'))) 
+                    return { category: 'Kendala: Staff/Barista', confidence: 0.85 };
+                if (t.includes('tutup') || t.includes('tidak buka') || t.includes('renovasi')) 
+                    return { category: 'Kendala: Toko Tutup/Renovasi', confidence: 0.9 };
+                if (t.includes('penjualan') && t.includes('flow')) 
+                    return { category: 'Kendala: Penjualan Sedang Ramai', confidence: 0.85 };
+
+                // PUNYA ROASTERY SENDIRI
+                if (t.includes('roastery') && (t.includes('sendiri') || t.includes('punya') || t.includes('sudah ada'))) 
+                    return { category: 'Stop: Punya Roastery Sendiri', confidence: 0.9 };
+
                 return { category: 'Lainnya', confidence: 0.5 };
             }
 
+            // === ALASAN VISIT 2 ===
             if (type === 'alasan2') {
-                if (t.includes('stop')) return { category: 'Stop', confidence: 0.95 };
-                if (t.includes('konfirmasi') && t.includes('sample')) return { category: 'Konfirmasi Sample', confidence: 0.95 };
-                if (t.includes('sample') && (t.includes('re schedule') || t.includes('reschedule') || t.includes('ulang') || t.includes('jadwal ulang'))) return { category: 'Reschedule Sampling', confidence: 0.9 };
-                if (t.includes('sample') && (t.includes('prepare') || t.includes('sesuai') || t.includes('make sure') || t.includes('buat'))) return { category: 'Persiapan Sample', confidence: 0.85 };
-                if (t.includes('kontak') && t.includes('hilang')) return { category: 'Kontak Hilang', confidence: 0.95 };
-                if (t.includes('tidak membalas') || t.includes('no response') || t.includes('tidak membalas chat')) return { category: 'No Response WA', confidence: 0.95 };
+                if (t.includes('stop')) 
+                    return { category: 'Stop', confidence: 0.95 };
+                if (t.includes('konfirmasi') && t.includes('sample')) 
+                    return { category: 'Konfirmasi Hasil Sample', confidence: 0.95 };
+                if (t.includes('sample') && (t.includes('re schedule') || t.includes('reschedule') || t.includes('ulang') || t.includes('jadwal ulang'))) 
+                    return { category: 'Reschedule Sampling', confidence: 0.9 };
+                if (t.includes('sample') && (t.includes('prepare') || t.includes('sesuai') || t.includes('make sure') || t.includes('buat') || t.includes('develop'))) 
+                    return { category: 'Persiapan Sample', confidence: 0.85 };
+                if (t.includes('kontak') && t.includes('hilang')) 
+                    return { category: 'Kendala: Kontak Hilang', confidence: 0.95 };
+                if (t.includes('tidak membalas') || t.includes('no response') || t.includes('tidak membalas chat')) 
+                    return { category: 'Kendala: No Response WA', confidence: 0.95 };
                 if (t.includes('follow up') || t.includes('followup')) {
-                    if (t.includes('owner') || t.includes('temu')) return { category: 'Follow Up - Bertemu Owner', confidence: 0.9 };
-                    if (t.includes('sample') || t.includes('sampling') || t.includes('semple')) return { category: 'Follow Up - Sampling', confidence: 0.9 };
-                    if (t.includes('rasa') || t.includes('hasil')) return { category: 'Follow Up - Rasa Sample', confidence: 0.9 };
+                    if (t.includes('owner') || t.includes('temu') || t.includes('manager')) 
+                        return { category: 'Follow Up: Bertemu PIC', confidence: 0.9 };
+                    if (t.includes('sample') || t.includes('sampling') || t.includes('semple')) 
+                        return { category: 'Follow Up: Sampling', confidence: 0.9 };
+                    if (t.includes('rasa') || t.includes('hasil')) 
+                        return { category: 'Follow Up: Hasil Sample', confidence: 0.9 };
                     return { category: 'Follow Up', confidence: 0.85 };
                 }
-                if (t.includes('tanya') || t.includes('menanyakan')) return { category: 'Tanya Rasa Sample', confidence: 0.85 };
-                if (t.includes('analisa') || t.includes('analisis') || t.includes('kebutuhan')) return { category: 'Analisis Kebutuhan', confidence: 0.85 };
-                if (t.includes('bertemu') || t.includes('temu')) return { category: 'Bertemu PIC', confidence: 0.85 };
-                if (t.includes('lanjut') || t.includes('obrolan')) return { category: 'Lanjutkan Obrolan', confidence: 0.8 };
-                if (t.trim() === '-' || t.trim() === '') return { category: 'Tidak Ada Keterangan', confidence: 1.0 };
+                if (t.includes('tanya') || t.includes('menanyakan')) 
+                    return { category: 'Tanya Hasil Sample', confidence: 0.85 };
+                if (t.includes('analisa') || t.includes('analisis') || t.includes('kebutuhan')) 
+                    return { category: 'Analisis Kebutuhan', confidence: 0.85 };
+                if (t.includes('bertemu') || t.includes('temu')) 
+                    return { category: 'Bertemu PIC', confidence: 0.85 };
+                if (t.includes('lanjut') || t.includes('obrolan')) 
+                    return { category: 'Lanjutkan Obrolan', confidence: 0.8 };
+                if (t.includes('atur') && t.includes('jadwal')) 
+                    return { category: 'Penjadwalan Ulang', confidence: 0.85 };
+                if (t.trim() === '-' || t.trim() === '') 
+                    return { category: 'Tidak Ada Keterangan', confidence: 1.0 };
                 return { category: 'Lainnya', confidence: 0.5 };
             }
 
+            // === ALASAN VISIT 3 ===
             if (type === 'alasan3') {
-                if (t.includes('konfirmasi')) return { category: 'Konfirmasi Sample', confidence: 0.95 };
+                if (t.includes('konfirmasi')) 
+                    return { category: 'Konfirmasi Hasil Sample', confidence: 0.95 };
                 if (t.includes('follow up') || t.includes('followup')) {
-                    if (t.includes('sample') || t.includes('diberikan') || t.includes('semple')) return { category: 'Follow Up Sample', confidence: 0.9 };
+                    if (t.includes('sample') || t.includes('diberikan') || t.includes('semple')) 
+                        return { category: 'Follow Up: Hasil Sample', confidence: 0.9 };
                     return { category: 'Follow Up', confidence: 0.85 };
                 }
+                if (t.includes('atur') && t.includes('jadwal')) 
+                    return { category: 'Penjadwalan Ulang', confidence: 0.85 };
                 return { category: 'Lainnya', confidence: 0.5 };
             }
 
