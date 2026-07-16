@@ -1399,7 +1399,7 @@ function analyzeText(text, type) {
     }
 
     return { category: 'Lainnya', confidence: 0.5 };
-}function fetchLeadsData() {
+}async function fetchLeadsData() {
   const loading = document.getElementById("loadingState");
   const content = document.getElementById("dashboardContent");
   loading.classList.remove("hidden");
