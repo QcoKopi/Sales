@@ -555,7 +555,7 @@
         </div>
         <div class="overflow-x-auto max-h-72 overflow-y-auto scrollbar-thin">
           <table class="w-full text-left text-xs">
-            <thead class="bg-porcelain-200 sticky top-0"><tr class="text-ink-400 font-bold uppercase tracking-wider text-[10px]">
+            <thead class="bg-porcelain-200 sticky top-0"><tr class="text-ink-400 font-bold uppercase tracking-wider text-10px]">
               <th class="px-4 py-3">Coffee Shop</th><th class="px-4 py-3">Sales</th><th class="px-4 py-3">Gap</th><th class="px-4 py-3">Alasan</th>
               <th class="px-4 py-3">Tunda s/d</th><th class="px-4 py-3">Sisa</th><th class="px-4 py-3">Aksi</th>
             </tr></thead>
@@ -895,11 +895,6 @@
                 <label class="label-field">Nama Sales</label>
                 <select id="sales" name="Sales" required onchange="handleSalesOrVisitChange()" class="input-field">
                   <option value="">-- Pilih Sales --</option>
-                  <option value="Alby">Alby</option>
-                  <option value="Herza">Herza</option>
-                  <option value="Zeni">Zeni</option>
-                  <option value="Putra">Putra</option>
-                  <option value="Reza">Reza</option>
                 </select>
               </div>
             </div>
@@ -1350,10 +1345,8 @@ function enterMainApplication() {
     }
   });
 
-  // Sales form default
-  const salesSelect = document.getElementById("sales");
-  salesSelect.value = currentUser.name;
-  salesSelect.disabled = currentUser.role !== "Admin";
+  // FIX: Populate sales dropdown dynamically instead of hardcoded
+  populateSalesEntryDropdown();
 
   document.getElementById("id_field").value = generateUniqueID();
   document.getElementById("checkin_field").value = new Date().toLocaleString('id-ID');
@@ -1395,6 +1388,46 @@ function tryRestoreSession() {
       enterMainApplication();
     }
   } catch (e) { console.error(e); }
+}
+
+// ============================================================================
+// DYNAMIC SALES DROPDOWN POPULATION (FIX)
+// ============================================================================
+function populateSalesEntryDropdown() {
+  const select = document.getElementById("sales");
+  if (!select) return;
+
+  // Ambil dari salesUsersCache (database user resmi) — prioritas tertinggi
+  let names = [];
+  if (salesUsersCache.length > 0) {
+    names = salesUsersCache
+      .filter(u => String(u.Role || '').trim() !== 'Admin' && String(u.Status || '').trim() === 'Active')
+      .map(u => String(u.Name || '').trim())
+      .filter(Boolean)
+      .sort();
+  }
+
+  // Fallback ke rawData kalau salesUsersCache belum ready
+  if (names.length === 0 && rawData.length > 0) {
+    names = Array.from(new Set(rawData.map(r => String(r["Sales"] || "").trim()).filter(Boolean))).sort();
+  }
+
+  // Fallback terakhir ke SALES_LIST default
+  if (names.length === 0) names = [...SALES_LIST];
+
+  const current = select.value;
+  select.innerHTML = `<option value="">-- Pilih Sales --</option>` +
+    names.map(n => `<option value="${n}">${n}</option>`).join('');
+
+  // Restore selection: prioritas currentUser.name, lalu previous selection
+  if (names.includes(currentUser.name)) {
+    select.value = currentUser.name;
+  } else if (names.includes(current)) {
+    select.value = current;
+  }
+
+  // Admin bisa ganti sales, non-admin locked ke nama sendiri
+  select.disabled = currentUser.role !== "Admin";
 }
 
 // ============================================================================
@@ -1682,6 +1715,8 @@ function analyzeTextAllMatches(text, type) {
     rawDatabase = rawData;
 
     populateSalesFilterDropdown();
+    // FIX: Also refresh entry dropdown when leads data loads
+    populateSalesEntryDropdown();
     applyDashboardFilter();
     handleSalesOrVisitChange();
     renderKunjunganTable();
@@ -2850,6 +2885,10 @@ async function fetchSalesUsers() {
     console.error("Gagal memuat data user:", e);
     salesUsersCache = [];
   }
+  
+  // FIX: Refresh entry dropdown whenever sales users data is fetched
+  populateSalesEntryDropdown();
+  
   if (activeTab === 'takeover') renderTakeoverTab();
 }
 
