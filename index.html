@@ -148,6 +148,17 @@
     animation: toastIn .35s cubic-bezier(.2,.8,.3,1);
   }
   @keyframes toastIn { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+  /* Leaflet map fixes */
+  #coffeeMap { background: #F4F2EC; }
+  #coffeeMap .leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 8px 24px -8px rgba(43,36,30,0.25);
+    border: 1px solid #ECE8DE;
+  }
+  #coffeeMap .leaflet-popup-content { margin: 12px 14px; }
+  #coffeeMap .leaflet-popup-tip { background: #fff; border: 1px solid #ECE8DE; }
+  #coffeeMap .leaflet-container { font-family: 'IBM Plex Sans', sans-serif; }
 </style>
 <base target="_blank">
 <base target="_blank">
@@ -1228,8 +1239,8 @@
         </div>
       </div>
 
-      <div class="card rounded-xl overflow-hidden p-1">
-        <div id="coffeeMap" class="w-full rounded-xl" style="height:600px; min-height:500px;"></div>
+      <div class="card rounded-xl overflow-hidden" style="position:relative;">
+        <div id="coffeeMap" style="width:100%; height:560px; min-height:400px; position:relative; z-index:1;"></div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -1508,7 +1519,7 @@ function switchTab(tab) {
     currentUser.role === 'Admin' ? 'Semua coffee shop yang perlu ditindaklanjuti' : 'Coffee shop Anda yang perlu ditindaklanjuti';
   if (tab === 'myleads') renderMyLeadsTable();
   if (tab === 'takeover') renderTakeoverTab();
-  if (tab === 'sebaran') { initMap(); renderMapMarkers(); }
+  if (tab === 'sebaran') { initMap(); renderMapMarkers(); refreshMapSize(); }
   if (tab === 'prospek') renderProspekTab();
   if (tab === 'performance') renderPerformanceTab();
 
@@ -3879,6 +3890,7 @@ async function handleSubmit(event) {
 // ============================================================================
 let coffeeMap = null;
 let coffeeMarkers = [];
+let mapNeedsRender = false;
 
 function parseGPS(gpsString) {
   if (!gpsString || typeof gpsString !== 'string') return null;
@@ -3897,17 +3909,28 @@ function getStatusColor(status) {
 
 function initMap() {
   if (coffeeMap) return;
-  coffeeMap = L.map('coffeeMap').setView([-6.4, 106.8], 11);
+  const mapEl = document.getElementById('coffeeMap');
+  if (!mapEl) return;
+  coffeeMap = L.map('coffeeMap', {
+    center: [-6.4, 106.8],
+    zoom: 11,
+    zoomControl: true
+  });
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors',
+    attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19
   }).addTo(coffeeMap);
 }
 
 function renderMapMarkers() {
-  if (!coffeeMap) initMap();
+  if (!coffeeMap) {
+    mapNeedsRender = true;
+    return;
+  }
+  mapNeedsRender = false;
+
   // Clear existing markers
-  coffeeMarkers.forEach(m => coffeeMap.removeLayer(m));
+  coffeeMarkers.forEach(m => { try { coffeeMap.removeLayer(m); } catch(e) {} });
   coffeeMarkers = [];
 
   const salesFilter = getEffectiveSalesFilter();
@@ -3922,7 +3945,6 @@ function renderMapMarkers() {
   const bounds = [];
 
   Object.entries(shops).forEach(([shopName, info]) => {
-    // Ambil GPS dari row Pertama (V1) karena itu yang punya data lengkap
     const v1Row = rawData.find(r =>
       String(r["Nama Coffee Shop"] || "").trim() === shopName &&
       String(r["Visit Ke"] || "").trim() === "Pertama"
@@ -3939,21 +3961,20 @@ function renderMapMarkers() {
 
     const color = getStatusColor(info.status);
     const badge = statusBadgeInfo(info);
-    const hasV3 = info.visits.has('Ketiga') || info.visits.has('Maksimal 3 kali Visit');
     const visitLabel = info.latestVisit || 'Pertama';
     const hasSkip = info.skipReason && info.skipUntil && info.skipUntil >= today;
 
     const popupHtml = `
-      <div style="font-family:'IBM Plex Sans',sans-serif; min-width:200px;">
+      <div style="font-family:'IBM Plex Sans',sans-serif; min-width:220px; max-width:280px;">
         <div style="font-weight:700; font-size:13px; color:#2B241E; margin-bottom:4px;">${shopName}</div>
         <div style="font-size:11px; color:#71654F; margin-bottom:6px;">
           <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${color}; margin-right:4px;"></span>
           ${badge.label} &middot; ${info.sales || '-'}
         </div>
-        <div style="font-size:10px; color:#8C8068; line-height:1.5;">
+        <div style="font-size:10px; color:#8C8068; line-height:1.6;">
           <div><strong>Area:</strong> ${info.profile.area || '-'}</div>
           <div><strong>Visit Terakhir:</strong> ${visitLabel}</div>
-          <div><strong>PIC:</strong> ${info.profile.pic || '-'} ${info.profile.telp ? '· ' + info.profile.telp : ''}</div>
+          <div><strong>PIC:</strong> ${info.profile.pic || '-'} ${info.profile.telp ? '&middot; ' + info.profile.telp : ''}</div>
           <div><strong>Bahan:</strong> ${info.profile.bahan || '-'}</div>
           <div><strong>Kapasitas:</strong> ${info.profile.totalKopi || '-'}</div>
           ${hasSkip ? `<div style="color:#B8863B; margin-top:4px;"><i class="fa-solid fa-clock"></i> Tunda: ${info.skipReason}</div>` : ''}
@@ -3962,15 +3983,15 @@ function renderMapMarkers() {
     `;
 
     const marker = L.circleMarker([coords.lat, coords.lng], {
-      radius: 8,
+      radius: 9,
       fillColor: color,
       color: '#fff',
-      weight: 2,
+      weight: 2.5,
       opacity: 1,
-      fillOpacity: 0.85
+      fillOpacity: 0.9
     }).addTo(coffeeMap);
 
-    marker.bindPopup(popupHtml);
+    marker.bindPopup(popupHtml, { maxWidth: 300, className: 'coffee-popup' });
     coffeeMarkers.push(marker);
   });
 
@@ -3979,9 +4000,19 @@ function renderMapMarkers() {
   document.getElementById('mapStatArea').innerText = areas.size;
 
   if (bounds.length > 0) {
-    coffeeMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+    coffeeMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
   } else {
     coffeeMap.setView([-6.4, 106.8], 11);
+  }
+}
+
+// Call this AFTER tab becomes visible to ensure Leaflet measures correctly
+function refreshMapSize() {
+  if (coffeeMap) {
+    setTimeout(() => {
+      coffeeMap.invalidateSize();
+      if (mapNeedsRender) renderMapMarkers();
+    }, 50);
   }
 }
 
