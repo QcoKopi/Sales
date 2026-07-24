@@ -1266,6 +1266,35 @@
           </div>
         </div>
       </div>
+
+      <!-- Area Analysis Table -->
+      <div class="card rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-porcelain-400 flex flex-wrap justify-between items-center gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-ink-600 uppercase tracking-wider">Analisis Coffee Shop per Area</h3>
+            <p class="text-[10px] text-ink-400 mt-1">Ringkasan kunjungan, status, dan performa per wilayah</p>
+          </div>
+          <input type="text" id="searchAreaTable" oninput="renderAreaAnalysis()" placeholder="Cari area..." class="input-field !w-48 text-xs">
+        </div>
+        <div class="overflow-x-auto max-h-[520px] overflow-y-auto scrollbar-thin">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-porcelain-200 sticky top-0">
+              <tr class="text-ink-400 font-bold uppercase tracking-wider text-[10px]">
+                <th class="px-4 py-3">Area / Wilayah</th>
+                <th class="px-4 py-3 text-center">Dikunjungi</th>
+                <th class="px-4 py-3 text-center">On Going</th>
+                <th class="px-4 py-3 text-center">Closing</th>
+                <th class="px-4 py-3 text-center">Stop</th>
+                <th class="px-4 py-3 text-center">Rate</th>
+                <th class="px-4 py-3">Top Sales</th>
+              </tr>
+            </thead>
+            <tbody id="areaAnalysisTableBody" class="divide-y divide-porcelain-300">
+              <tr><td colspan="7" class="px-4 py-6 text-center text-ink-300 text-xs italic">Memuat analisis area...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -1519,7 +1548,7 @@ function switchTab(tab) {
     currentUser.role === 'Admin' ? 'Semua coffee shop yang perlu ditindaklanjuti' : 'Coffee shop Anda yang perlu ditindaklanjuti';
   if (tab === 'myleads') renderMyLeadsTable();
   if (tab === 'takeover') renderTakeoverTab();
-  if (tab === 'sebaran') { initMap(); renderMapMarkers(); refreshMapSize(); }
+  if (tab === 'sebaran') { initMap(); renderMapMarkers(); refreshMapSize(); renderAreaAnalysis(); }
   if (tab === 'prospek') renderProspekTab();
   if (tab === 'performance') renderPerformanceTab();
 
@@ -1961,6 +1990,7 @@ function applyDashboardFilter() {
   updateCharts(filtered);
   updateFullTable(filtered);
   renderMapMarkers();
+  renderAreaAnalysis();
   renderSkipActiveTable();
 }
 
@@ -4014,6 +4044,103 @@ function refreshMapSize() {
       if (mapNeedsRender) renderMapMarkers();
     }, 50);
   }
+}
+
+
+// ============================================================================
+// AREA ANALYSIS TABLE (Sebaran Tab)
+// ============================================================================
+function renderAreaAnalysis() {
+  const tbody = document.getElementById("areaAnalysisTableBody");
+  const searchEl = document.getElementById("searchAreaTable");
+  const search = searchEl ? searchEl.value.toLowerCase() : "";
+
+  if (!tbody) return;
+
+  const salesFilter = getEffectiveSalesFilter();
+  const filtered = salesFilter === "ALL"
+    ? rawData
+    : rawData.filter(r => String(r["Sales"] || "").trim() === salesFilter);
+
+  const shops = buildShopProfiles(filtered);
+
+  // Aggregate per area
+  const areaStats = {};
+  Object.entries(shops).forEach(([shopName, info]) => {
+    const area = String(info.profile.area || "Tidak Diketahui").trim();
+    if (!areaStats[area]) {
+      areaStats[area] = { total: 0, ongoing: 0, closing: 0, stop: 0, salesSet: new Set() };
+    }
+    areaStats[area].total++;
+    areaStats[area].salesSet.add(info.sales || '-');
+    if (info.status === 'stop') areaStats[area].stop++;
+    else if (info.status === 'closing') areaStats[area].closing++;
+    else areaStats[area].ongoing++;
+  });
+
+  let entries = Object.entries(areaStats);
+  if (search) {
+    entries = entries.filter(([area]) => area.toLowerCase().includes(search));
+  }
+  // Sort by total descending
+  entries.sort((a, b) => b[1].total - a[1].total);
+
+  if (entries.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-ink-300 text-xs italic">Tidak ada data area</td></tr>`;
+    return;
+  }
+
+  const grandTotal = entries.reduce((s, [, d]) => s + d.total, 0);
+  const grandOngoing = entries.reduce((s, [, d]) => s + d.ongoing, 0);
+  const grandClosing = entries.reduce((s, [, d]) => s + d.closing, 0);
+  const grandStop = entries.reduce((s, [, d]) => s + d.stop, 0);
+
+  let html = '';
+
+  entries.forEach(([area, data]) => {
+    const conversionRate = data.total > 0 ? ((data.closing / data.total) * 100).toFixed(1) : '0.0';
+    const rateColor = parseFloat(conversionRate) >= 20 ? '#5F7A52' : parseFloat(conversionRate) >= 10 ? '#B8863B' : '#8C8068';
+    const topSales = Array.from(data.salesSet).slice(0, 3).join(', ');
+
+    html += `<tr class="row-hover">
+      <td class="px-4 py-2.5">
+        <span class="text-xs font-bold text-ink-600">${area}</span>
+      </td>
+      <td class="px-4 py-2.5 text-center">
+        <span class="text-sm font-bold font-data text-ink-600">${data.total}</span>
+      </td>
+      <td class="px-4 py-2.5 text-center">
+        <span class="badge bg-honey-50 text-honey-600 border border-honey-100">${data.ongoing}</span>
+      </td>
+      <td class="px-4 py-2.5 text-center">
+        <span class="badge bg-moss-50 text-moss-600 border border-moss-100">${data.closing}</span>
+      </td>
+      <td class="px-4 py-2.5 text-center">
+        <span class="badge bg-brick-50 text-brick-600 border border-brick-100">${data.stop}</span>
+      </td>
+      <td class="px-4 py-2.5 text-center">
+        <span class="text-xs font-bold font-data" style="color:${rateColor}">${conversionRate}%</span>
+        <div class="w-full progress-track h-1 mt-1 mx-auto" style="max-width:60px">
+          <div class="progress-bar h-1" style="width:${Math.min(parseFloat(conversionRate), 100)}%; background:${rateColor}"></div>
+        </div>
+      </td>
+      <td class="px-4 py-2.5 text-[10px] text-ink-400 max-w-[150px] truncate">${topSales}</td>
+    </tr>`;
+  });
+
+  // Grand total row
+  const grandRate = grandTotal > 0 ? ((grandClosing / grandTotal) * 100).toFixed(1) : '0.0';
+  html += `<tr style="background:#F4F2EC; border-top:2px solid #E2DDD0;">
+    <td class="px-4 py-2.5 text-xs font-extrabold text-ink-600 uppercase tracking-wider">TOTAL</td>
+    <td class="px-4 py-2.5 text-center text-sm font-extrabold font-data text-ink-600">${grandTotal}</td>
+    <td class="px-4 py-2.5 text-center text-xs font-bold text-honey-600">${grandOngoing}</td>
+    <td class="px-4 py-2.5 text-center text-xs font-bold text-moss-600">${grandClosing}</td>
+    <td class="px-4 py-2.5 text-center text-xs font-bold text-brick-600">${grandStop}</td>
+    <td class="px-4 py-2.5 text-center text-xs font-extrabold font-data text-ink-600">${grandRate}%</td>
+    <td class="px-4 py-2.5"></td>
+  </tr>`;
+
+  tbody.innerHTML = html;
 }
 
 // ============================================================================
