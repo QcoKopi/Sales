@@ -1044,9 +1044,15 @@
                   <option value="Tidak">Tidak</option>
                 </select>
               </div>
-              <div id="jenis_sample_wrapper" class="hidden">
-                <label class="label-field">Jenis Sample</label>
-                <input type="text" id="jenis_sample" name="Jenis Sample" placeholder="Contoh: House Blend 250g" class="input-field">
+              <div id="jenis_sample_wrapper" class="hidden sm:col-span-2">
+                <label class="label-field">Barang Sampling</label>
+                <!-- Nilai terkirim ke sheet ENTRY (kolom "Jenis Sample") disusun otomatis dari daftar di bawah -->
+                <input type="hidden" id="jenis_sample" name="Jenis Sample">
+                <div id="samplingItemsList" class="space-y-2"></div>
+                <button type="button" onclick="addSamplingItem()" class="btn-ghost rounded-lg px-3.5 py-2 text-xs flex items-center gap-2 mt-2">
+                  <i class="fa-solid fa-plus text-[11px]"></i> Tambah Barang
+                </button>
+                <p class="text-[10px] text-ink-400 mt-1">Nama barang diambil dari sheet <strong>Penjualan_app</strong> (total jumlah teragregasi ditampilkan sebagai referensi).</p>
               </div>
             </div>
 
@@ -1465,6 +1471,7 @@ function enterMainApplication() {
   fetchSkipData();
   fetchKunjunganData();
   fetchSalesUsers();
+  fetchBarangData();
 }
 
 function handleLogout() {
@@ -1473,6 +1480,7 @@ function handleLogout() {
   sessionStorage.removeItem("qco_session");
   document.getElementById("loginForm").reset();
   document.getElementById("salesForm").reset();
+  toggleSamplingField();
   document.getElementById("mainApp").classList.add("hidden");
   document.getElementById("loginScreen").classList.remove("hidden");
 }
@@ -3839,12 +3847,89 @@ function processImageFile(event) {
   reader.readAsDataURL(file);
 }
 
+// ============================================================================
+// SAMPLING — Daftar barang dinamis (dropdown dari sheet Penjualan_app)
+// ============================================================================
+let BARANG_LIST = []; // cache: [{nama_barang, total_jumlah}]
+
+async function fetchBarangData() {
+  try {
+    const res = await fetch(`${WEB_APP_URL}?action=getBarangData&_t=${new Date().getTime()}`, { method: "GET", redirect: "follow" });
+    const result = await res.json();
+    if (result.success && Array.isArray(result.data)) {
+      BARANG_LIST = result.data;
+    } else {
+      console.warn("getBarangData gagal:", result.message);
+      BARANG_LIST = [];
+    }
+  } catch (e) {
+    console.error("Gagal memuat data barang:", e);
+    BARANG_LIST = [];
+  }
+}
+
 function toggleSamplingField() {
   const samplingVal = document.getElementById("sampling").value;
   const wrapper = document.getElementById("jenis_sample_wrapper");
   const input = document.getElementById("jenis_sample");
-  if (samplingVal === "Ya") { wrapper.classList.remove("hidden"); input.required = true; }
-  else { wrapper.classList.add("hidden"); input.required = false; input.value = ""; }
+  const list = document.getElementById("samplingItemsList");
+  if (samplingVal === "Ya") {
+    wrapper.classList.remove("hidden");
+    input.required = true;
+    if (list.children.length === 0) addSamplingItem();
+    if (BARANG_LIST.length === 0) fetchBarangData().then(refreshSamplingDropdowns);
+  } else {
+    wrapper.classList.add("hidden");
+    input.required = false;
+    input.value = "";
+    list.innerHTML = "";
+  }
+}
+
+function buildBarangOptions(selectedValue) {
+  let opts = '<option value="">-- Pilih Barang --</option>';
+  BARANG_LIST.forEach(b => {
+    const sel = (b.nama_barang === selectedValue) ? " selected" : "";
+    opts += `<option value="${b.nama_barang.replace(/"/g, '&quot;')}"${sel}>${b.nama_barang} — total: ${b.total_jumlah}</option>`;
+  });
+  return opts;
+}
+
+function addSamplingItem(namaBarang = "", jumlah = "") {
+  const list = document.getElementById("samplingItemsList");
+  const row = document.createElement("div");
+  row.className = "sampling-item flex items-center gap-2";
+  row.innerHTML = `
+    <select class="input-field sampling-barang flex-1" onchange="updateJenisSampleValue()">${buildBarangOptions(namaBarang)}</select>
+    <input type="number" min="0" step="any" class="input-field sampling-jumlah !w-24 font-data" placeholder="Jumlah" value="${jumlah}" oninput="updateJenisSampleValue()">
+    <button type="button" onclick="removeSamplingItem(this)" class="text-ink-400 hover:text-red-500 transition-colors px-1" title="Hapus barang">
+      <i class="fa-solid fa-xmark"></i>
+    </button>`;
+  list.appendChild(row);
+  updateJenisSampleValue();
+}
+
+function removeSamplingItem(btn) {
+  btn.closest(".sampling-item").remove();
+  updateJenisSampleValue();
+}
+
+function refreshSamplingDropdowns() {
+  document.querySelectorAll("#samplingItemsList .sampling-barang").forEach(sel => {
+    const current = sel.value;
+    sel.innerHTML = buildBarangOptions(current);
+  });
+}
+
+// Susun nilai gabungan: "Barang A (2); Barang B (1.5)" → kolom "Jenis Sample"
+function updateJenisSampleValue() {
+  const parts = [];
+  document.querySelectorAll("#samplingItemsList .sampling-item").forEach(row => {
+    const nama = row.querySelector(".sampling-barang").value.trim();
+    const jumlah = row.querySelector(".sampling-jumlah").value.trim();
+    if (nama) parts.push(jumlah ? `${nama} (${jumlah})` : nama);
+  });
+  document.getElementById("jenis_sample").value = parts.join("; ");
 }
 
 function toggleBahanLainnya() {
@@ -3877,6 +3962,22 @@ async function handleSubmit(event) {
   const form = document.getElementById("salesForm");
   const salesSelect = document.getElementById("sales");
   salesSelect.disabled = false;
+
+  // Validasi sampling: minimal satu barang dipilih beserta jumlahnya
+  if (document.getElementById("sampling").value === "Ya") {
+    updateJenisSampleValue();
+    const items = document.querySelectorAll("#samplingItemsList .sampling-item");
+    let valid = items.length > 0;
+    items.forEach(row => {
+      if (!row.querySelector(".sampling-barang").value.trim() || !row.querySelector(".sampling-jumlah").value.trim()) valid = false;
+    });
+    if (!valid) {
+      showToast("Lengkapi nama barang dan jumlah sampling terlebih dahulu.", "error");
+      btn.disabled = false; btn.innerText = "Kirim Laporan Kunjungan";
+      salesSelect.disabled = (currentUser.role !== "Admin");
+      return;
+    }
+  }
 
   const formData = new FormData(form);
   const dataObject = {};
