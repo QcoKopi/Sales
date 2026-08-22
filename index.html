@@ -17,10 +17,15 @@
 <style id="portal-guard-style">html{display:none !important;}</style>
 <script>
 (function(){
-  // URL backend QSystem yang SAMA dengan yang dipakai fungsi
-  // qsales_login/qsales_getSkipData dst di bawah (WEB_APP_URL) --
-  // action validatePortalToken sudah ditambahkan ke router yang sama.
-  var PORTAL_GUARD_GAS_URL = 'https://script.google.com/macros/s/AKfycbyNuh-E6Lutp5jC5_25YAvF2e_4fk2O7AzdbU_Sa3CSOFs2SmhhzC5urEgvsQt7hAQ/exec';
+  // FIX (2026-08-22): URL SEBELUMNYA (WEB_APP_URL milik file ini sendiri)
+  // TERNYATA deployment yang BEDA dari CONFIG.GAS_URL milik QSystem --
+  // dikonfirmasi user via console browser di qsys.qcoid.com. Token
+  // diterbitkan lewat CONFIG.GAS_URL (saat klik "Buka Portal QSales"),
+  // jadi validasi JUGA harus lewat URL yang SAMA PERSIS -- kalau beda,
+  // token yang baru diterbitkan tidak akan pernah ketemu di sisi validasi
+  // (persis gejala yang dilaporkan: redirect balik ke qsys.qcoid.com
+  // sesaat setelah tab portal terbuka).
+  var PORTAL_GUARD_GAS_URL = 'https://script.google.com/macros/s/AKfycbxETc9Xv6udc7U0N9yflz7DrosN3PH1STUhF-d1qrW0ST48DKjFU4w8Kafuadm09XU/exec';
   var QSYS_URL = 'https://qsys.qcoid.com/';
 
   function redirectAway(){
