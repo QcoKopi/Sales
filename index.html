@@ -3,6 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ============================================================
+     BARU (2026-08-22): GUARD TOKEN AKSES PORTAL -- mencegah halaman
+     ini dibuka LANGSUNG (bookmark/link lama) tanpa lewat tombol
+     "Buka Portal QSales" di QSystem. QSystem menerbitkan token
+     sekali-pakai umur pendek (60 detik) SEBELUM membuka tab ini;
+     guard di bawah HARUS memvalidasi token itu SEBELUM konten apa
+     pun ditampilkan -- kalau tidak ada/tidak valid, langsung
+     dialihkan balik ke qsys.qcoid.com. TIDAK menyentuh logika/kode
+     apa pun di bawah ini -- murni ditambahkan di depan sebagai
+     gerbang independen.
+     ============================================================ -->
+<style id="portal-guard-style">html{display:none !important;}</style>
+<script>
+(function(){
+  // URL backend QSystem yang SAMA dengan yang dipakai fungsi
+  // qsales_login/qsales_getSkipData dst di bawah (WEB_APP_URL) --
+  // action validatePortalToken sudah ditambahkan ke router yang sama.
+  var PORTAL_GUARD_GAS_URL = 'https://script.google.com/macros/s/AKfycbyNuh-E6Lutp5jC5_25YAvF2e_4fk2O7AzdbU_Sa3CSOFs2SmhhzC5urEgvsQt7hAQ/exec';
+  var QSYS_URL = 'https://qsys.qcoid.com/';
+
+  function redirectAway(){
+    window.location.replace(QSYS_URL);
+  }
+
+  var params = new URLSearchParams(window.location.search);
+  var token = params.get('t');
+
+  if (!token) {
+    redirectAway();
+  } else {
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function(){ controller.abort(); }, 8000);
+    fetch(PORTAL_GUARD_GAS_URL + '?action=validatePortalToken&token=' + encodeURIComponent(token) + '&_t=' + Date.now(), { signal: controller.signal })
+      .then(function(r){ clearTimeout(timeoutId); return r.json(); })
+      .then(function(res){
+        if (res && res.success && res.data && res.data.valid) {
+          var styleEl = document.getElementById('portal-guard-style');
+          if (styleEl) styleEl.remove();
+        } else {
+          redirectAway();
+        }
+      })
+      .catch(function(){ redirectAway(); });
+  }
+})();
+</script>
 <title>Q.co Coffee Lab — Sales Portal</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
