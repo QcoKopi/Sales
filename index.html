@@ -4099,18 +4099,18 @@ function initMap() {
   if (coffeeMap) return;
   const mapEl = document.getElementById('coffeeMap');
   if (!mapEl) return;
-  // Fokus: DKI Jakarta, Bogor, Depok, Tangerang Selatan
+  // Fokus: DKI Jakarta, Bogor, Depok, Tangerang Selatan — diperluas supaya Bogor Selatan tidak terpotong
   const jabodetabekBounds = L.latLngBounds(
-    L.latLng(-6.70, 106.50), // SW: Bogor Selatan / Tangerang Selatan barat
-    L.latLng(-6.10, 106.95)  // NE: Jakarta Utara / Jakarta Timur
+    L.latLng(-6.85, 106.40), // SW: Bogor Selatan / Lebak / Tangerang barat
+    L.latLng(-6.00, 107.00)  // NE: Jakarta Utara / Bekasi timur
   );
   coffeeMap = L.map('coffeeMap', {
-    center: [-6.40, 106.72],   // Titik tengah Jak-Bog-Dep-Tangsel
+    center: [-6.40, 106.72],
     zoom: 12,
     zoomControl: true,
     maxBounds: jabodetabekBounds,
     maxBoundsViscosity: 1.0,
-    minZoom: 11
+    minZoom: 10
   });
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
