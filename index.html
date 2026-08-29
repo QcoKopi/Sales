@@ -213,6 +213,7 @@
 </style>
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body class="min-h-screen text-ink">
 
@@ -1361,6 +1362,11 @@
 <div id="toastContainer" class="fixed bottom-5 right-5 z-[100] flex flex-col gap-2 items-end pointer-events-none"></div>
 
 <script>
+// ============================================================================
+// Q.co Coffee Lab — Sales Portal  (v2026.08.29-2)
+// Index: File 2 (portal guard + sampling dinamis)
+// Peta:  initMap() & renderMapMarkers() dari File 1 (center presisi, maxBounds)
+// ============================================================================
 // ============================================================================
 // CONFIG & STATE
 // ============================================================================
@@ -4093,10 +4099,18 @@ function initMap() {
   if (coffeeMap) return;
   const mapEl = document.getElementById('coffeeMap');
   if (!mapEl) return;
+  // Fokus: DKI Jakarta, Bogor, Depok, Tangerang Selatan
+  const jabodetabekBounds = L.latLngBounds(
+    L.latLng(-6.70, 106.50), // SW: Bogor Selatan / Tangerang Selatan barat
+    L.latLng(-6.10, 106.95)  // NE: Jakarta Utara / Jakarta Timur
+  );
   coffeeMap = L.map('coffeeMap', {
-    center: [-6.4, 106.8],
-    zoom: 11,
-    zoomControl: true
+    center: [-6.40, 106.72],   // Titik tengah Jak-Bog-Dep-Tangsel
+    zoom: 12,
+    zoomControl: true,
+    maxBounds: jabodetabekBounds,
+    maxBoundsViscosity: 1.0,
+    minZoom: 11
   });
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -4182,9 +4196,9 @@ function renderMapMarkers() {
   document.getElementById('mapStatArea').innerText = areas.size;
 
   if (bounds.length > 0) {
-    coffeeMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    coffeeMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
   } else {
-    coffeeMap.setView([-6.4, 106.8], 11);
+    coffeeMap.setView([-6.40, 106.72], 12);
   }
 }
 
