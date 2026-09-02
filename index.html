@@ -1118,14 +1118,13 @@
               <p class="text-[10px] text-ink-400 mt-1">Setelah Visit 3, seharusnya status berubah menjadi <strong>Menjadi Klien</strong> atau <strong>Stop</strong>. Jika masih On Going, berikan alasan melalui fitur Tunda.</p>
             </div>
 
-            <div id="closing_data_wrapper" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="label-field">Jumlah (Kg)</label>
-                <input type="number" id="jumlah" name="Jumlah" placeholder="0" class="input-field font-data">
-              </div>
-              <div>
-                <label class="label-field">Harga</label>
-                <input type="number" id="harga" name="Harga" placeholder="0" class="input-field font-data">
+            <div id="closing_data_wrapper" class="hidden">
+              <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-2">
+                <p class="text-xs text-ink-600 font-semibold flex items-center gap-2"><i class="fa-solid fa-box"></i> Detail order (barang, jumlah, harga) dicatat di Purchase Order</p>
+                <p class="text-[11px] text-ink-400">Supaya tidak dobel dan lebih lengkap (bisa lihat stok, rekomendasi produksi, dan status pengiriman), isi rincian order lewat Purchase Order di QSystem -- BUKAN di form ini. Laporan kunjungan ini tetap bisa dikirim seperti biasa tanpa mengisi jumlah/harga.</p>
+                <a href="https://qsys.qcoid.com/?goto=po" target="_blank" rel="noopener noreferrer" class="btn-primary rounded-lg px-3.5 py-2 text-xs inline-flex items-center gap-2 mt-1">
+                  <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i> Buka Purchase Order di QSystem
+                </a>
               </div>
             </div>
 
@@ -3998,12 +3997,19 @@ function toggleBahanLainnya() {
 }
 
 function toggleClosingFields() {
+  // DIUBAH (2026-09-02, per instruksi user): SEBELUMNYA wrapper ini berisi
+  // input Jumlah (Kg) & Harga yang WAJIB diisi manual di form ini --
+  // SEKARANG diarahkan ke Purchase Order (QSystem) supaya (a) tidak
+  // dobel-catat di dua tempat, dan (b) datanya lebih lengkap (nama
+  // barang, cek stok, rekomendasi produksi, status pengiriman -- yang
+  // semuanya TIDAK ADA di form sederhana ini). Elemen id="jumlah"/
+  // id="harga" SUDAH DIHAPUS dari HTML, jadi TIDAK ADA LAGI field wajib
+  // yang perlu di-toggle required/value-nya di sini -- cuma tampilkan/
+  // sembunyikan pesan+tombol redirect saja.
   const closingVal = document.getElementById("closing").value;
   const wrapper = document.getElementById("closing_data_wrapper");
-  const jumlah = document.getElementById("jumlah");
-  const harga = document.getElementById("harga");
-  if (closingVal === "Closing") { wrapper.classList.remove("hidden"); jumlah.required = true; harga.required = true; }
-  else { wrapper.classList.add("hidden"); jumlah.required = false; harga.required = false; jumlah.value = ""; harga.value = ""; }
+  if (closingVal === "Closing") { wrapper.classList.remove("hidden"); }
+  else { wrapper.classList.add("hidden"); }
 }
 
 async function handleSubmit(event) {
