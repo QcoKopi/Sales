@@ -1118,13 +1118,14 @@
               <p class="text-[10px] text-ink-400 mt-1">Setelah Visit 3, seharusnya status berubah menjadi <strong>Menjadi Klien</strong> atau <strong>Stop</strong>. Jika masih On Going, berikan alasan melalui fitur Tunda.</p>
             </div>
 
-            <div id="closing_data_wrapper" class="hidden">
-              <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-2">
-                <p class="text-xs text-ink-600 font-semibold flex items-center gap-2"><i class="fa-solid fa-box"></i> Detail order (barang, jumlah, harga) dicatat di Purchase Order</p>
-                <p class="text-[11px] text-ink-400">Supaya tidak dobel dan lebih lengkap (bisa lihat stok, rekomendasi produksi, dan status pengiriman), isi rincian order lewat Purchase Order di QSystem -- BUKAN di form ini. Laporan kunjungan ini tetap bisa dikirim seperti biasa tanpa mengisi jumlah/harga.</p>
-                <a href="https://qsys.qcoid.com/?goto=po" target="_blank" rel="noopener noreferrer" class="btn-primary rounded-lg px-3.5 py-2 text-xs inline-flex items-center gap-2 mt-1">
-                  <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i> Buka Purchase Order di QSystem
-                </a>
+            <div id="closing_data_wrapper" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="label-field">Jumlah (Kg)</label>
+                <input type="number" id="jumlah" name="Jumlah" placeholder="0" class="input-field font-data">
+              </div>
+              <div>
+                <label class="label-field">Harga</label>
+                <input type="number" id="harga" name="Harga" placeholder="0" class="input-field font-data">
               </div>
             </div>
 
@@ -1362,7 +1363,7 @@
 
 <script>
 // ============================================================================
-// Q.co Coffee Lab — Sales Portal  (v2026.08.29-2)
+// Q.co Coffee Lab — Sales Portal  (v2026.09.04-1
 // Index: File 2 (portal guard + sampling dinamis)
 // Peta:  initMap() & renderMapMarkers() dari File 1 (center presisi, maxBounds)
 // ============================================================================
@@ -1381,6 +1382,128 @@ let charts = {};
 let currentAiTab = 'keterangan';
 let aiAuditItems = [];
 let activeTab = 'dashboard';
+
+// ============================================================================
+// MASTER DATA CACHE — batch fetch + sessionStorage (hemat quota GAS)
+// ============================================================================
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 menit
+const MASTER_CACHE_KEY = 'qco_master_data_v1';
+const MASTER_CACHE_TS_KEY = 'qco_master_data_ts_v1';
+
+function isCacheValid() {
+  try {
+    var ts = sessionStorage.getItem(MASTER_CACHE_TS_KEY);
+    if (!ts) return false;
+    return (Date.now() - parseInt(ts, 10)) < CACHE_TTL_MS;
+  } catch (e) { return false; }
+}
+
+function loadFromCache() {
+  try {
+    var raw = sessionStorage.getItem(MASTER_CACHE_KEY);
+    if (!raw) return null;
+    var parsed = JSON.parse(raw);
+    if (parsed && parsed.leads) {
+      rawData = parsed.leads;
+      rawDatabase = parsed.leads;
+      skipDataCache = parsed.skip || [];
+      kunjunganCache = parsed.kunjungan || [];
+      salesUsersCache = parsed.salesUsers || [];
+      BARANG_LIST = parsed.barang || [];
+      return true;
+    }
+  } catch (e) { console.error('Cache load error:', e); }
+  return false;
+}
+
+function saveToCache(data) {
+  try {
+    sessionStorage.setItem(MASTER_CACHE_KEY, JSON.stringify({
+      leads: data.leads || [],
+      skip: data.skip || [],
+      kunjungan: data.kunjungan || [],
+      salesUsers: data.salesUsers || [],
+      barang: data.barang || [],
+      cachedAt: data.cachedAt
+    }));
+    sessionStorage.setItem(MASTER_CACHE_TS_KEY, String(Date.now()));
+  } catch (e) { console.error('Cache save error:', e); }
+}
+
+async function fetchMasterData(forceRefresh) {
+  if (!forceRefresh && isCacheValid() && loadFromCache()) {
+    console.log('[QCache] Master data loaded from sessionStorage');
+    populateSalesFilterDropdown();
+    populateSalesEntryDropdown();
+    applyDashboardFilter();
+    handleSalesOrVisitChange();
+    renderKunjunganTable();
+    return { fromCache: true };
+  }
+
+  try {
+    var url = WEB_APP_URL + '?action=getAllMasterData&days=90&role=' + encodeURIComponent(currentUser ? currentUser.role : 'Sales') + '&_t=' + Date.now();
+    var response = await fetch(url, { method: 'GET', redirect: 'follow' });
+    if (!response.ok) throw new Error('Gagal fetch master data');
+    var result = await response.json();
+
+    if (result.success) {
+      rawData = result.leads || [];
+      rawDatabase = result.leads || [];
+      skipDataCache = result.skip || [];
+      kunjunganCache = result.kunjungan || [];
+      salesUsersCache = result.salesUsers || [];
+      BARANG_LIST = result.barang || [];
+
+      saveToCache(result);
+      console.log('[QCache] Master data fetched from GAS' + (result.fromCache ? ' (GAS cache)' : ''));
+
+      populateSalesFilterDropdown();
+      populateSalesEntryDropdown();
+      applyDashboardFilter();
+      handleSalesOrVisitChange();
+      renderKunjunganTable();
+      return { fromCache: false };
+    } else {
+      throw new Error(result.message || 'Unknown error');
+    }
+  } catch (error) {
+    console.error('fetchMasterData error:', error);
+    // Fallback: coba cache lama meski expired
+    if (loadFromCache()) {
+      console.log('[QCache] Fallback to expired cache');
+      populateSalesFilterDropdown();
+      populateSalesEntryDropdown();
+      applyDashboardFilter();
+      return { fromCache: true, expired: true };
+    }
+    showToast('Gagal memuat data. Coba refresh.', 'error');
+    return { error: true };
+  }
+}
+
+// ============================================================================
+// LAZY TAB LOADING — fetch hanya saat tab pertama kali dibuka
+// ============================================================================
+const tabLoaded = {};
+
+function ensureTabData(tab) {
+  // Data master sudah di-load saat login, jadi kebanyakan tab sudah siap.
+  // Hanya tab yang butuh refresh real-time (sebaran peta) yang perlu re-render.
+  if (tab === 'sebaran') { initMap(); renderMapMarkers(); refreshMapSize(); renderAreaAnalysis(); }
+  if (tab === 'prospek') renderProspekTab();
+  if (tab === 'performance') renderPerformanceTab();
+  if (tab === 'takeover') renderTakeoverTab();
+  if (tab === 'myleads') renderMyLeadsTable();
+  if (tab === 'reminder') {
+    // Reminder di-render dari data yang sudah ada via applyDashboardFilter
+    // Tapi kalau data kosong, coba fetch
+    if (rawData.length === 0 && !isCacheValid()) {
+      fetchMasterData(true);
+    }
+  }
+}
+
 const isFieldMode = new URLSearchParams(window.location.search).get('view') === 'entry';
 
 function openFieldModeWindow() {
@@ -1523,17 +1646,17 @@ function enterMainApplication() {
   const defaultTab = isFieldMode ? "entry" : (currentUser.role === "Admin" ? "dashboard" : "entry");
   switchTab(defaultTab);
 
-  fetchLeadsData();
-  fetchSkipData();
-  fetchKunjunganData();
-  fetchSalesUsers();
-  fetchBarangData();
+  fetchMasterData(false); // 1 request menggantikan 5
 }
 
 function handleLogout() {
   currentUser = null;
   rawData = []; rawDatabase = []; skipDataCache = []; kunjunganCache = []; salesUsersCache = [];
+  BARANG_LIST = [];
+  tabLoaded = {};
   sessionStorage.removeItem("qco_session");
+  sessionStorage.removeItem(MASTER_CACHE_KEY);
+  sessionStorage.removeItem(MASTER_CACHE_TS_KEY);
   document.getElementById("loginForm").reset();
   document.getElementById("salesForm").reset();
   toggleSamplingField();
@@ -1605,16 +1728,24 @@ function switchTab(tab) {
   });
   positionNavIndicator();
 
-  if (tab === 'profile') renderProfileTab();
-  if (tab === 'kunjungan') { populateKunjunganShopOptions(); renderKunjunganTable(); }
-  if (tab === 'entry') getLocation();
-  if (tab === 'reminder') document.getElementById('reminderSubtitle').innerText =
-    currentUser.role === 'Admin' ? 'Semua coffee shop yang perlu ditindaklanjuti' : 'Coffee shop Anda yang perlu ditindaklanjuti';
-  if (tab === 'myleads') renderMyLeadsTable();
-  if (tab === 'takeover') renderTakeoverTab();
-  if (tab === 'sebaran') { initMap(); renderMapMarkers(); refreshMapSize(); renderAreaAnalysis(); }
-  if (tab === 'prospek') renderProspekTab();
-  if (tab === 'performance') renderPerformanceTab();
+  // Lazy loading: hanya render/fetch kalau tab belum pernah diload di sesi ini
+  // atau data master masih kosong
+  if (!tabLoaded[tab] || rawData.length === 0) {
+    ensureTabData(tab);
+    tabLoaded[tab] = true;
+  } else {
+    // Tab sudah pernah diload, cukup re-render dari data yang ada
+    if (tab === 'profile') renderProfileTab();
+    if (tab === 'kunjungan') { populateKunjunganShopOptions(); renderKunjunganTable(); }
+    if (tab === 'entry') getLocation();
+    if (tab === 'reminder') document.getElementById('reminderSubtitle').innerText =
+      currentUser.role === 'Admin' ? 'Semua coffee shop yang perlu ditindaklanjuti' : 'Coffee shop Anda yang perlu ditindaklanjuti';
+    if (tab === 'myleads') renderMyLeadsTable();
+    if (tab === 'takeover') renderTakeoverTab();
+    if (tab === 'sebaran') { initMap(); renderMapMarkers(); refreshMapSize(); renderAreaAnalysis(); }
+    if (tab === 'prospek') renderProspekTab();
+    if (tab === 'performance') renderPerformanceTab();
+  }
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1862,27 +1993,22 @@ function analyzeTextAllMatches(text, type) {
     // De-duplicate (some rules can double-push the same category) while preserving order
     const seen = new Set();
     return matches.filter(m => { if (seen.has(m.category)) return false; seen.add(m.category); return true; });
-}async function fetchLeadsData() {
+}async function fetchLeadsData(force) {
+  // Kalau data sudah ada dan tidak force refresh, skip fetch
+  if (!force && rawData.length > 0) {
+    applyDashboardFilter();
+    document.getElementById("loadingState").classList.add("hidden");
+    document.getElementById("dashboardContent").classList.remove("hidden");
+    return;
+  }
+
   const loading = document.getElementById("loadingState");
   const content = document.getElementById("dashboardContent");
   loading.classList.remove("hidden");
   content.classList.add("hidden");
 
   try {
-    const response = await fetch(`${WEB_APP_URL}?_t=${new Date().getTime()}`, { method: "GET", redirect: "follow" });
-    if (!response.ok) throw new Error("Gagal fetch");
-
-    rawData = await response.json();
-    rawData = rawData.filter(item => item["Nama Coffee Shop"] && String(item["Nama Coffee Shop"]).trim() !== "");
-    rawDatabase = rawData;
-
-    populateSalesFilterDropdown();
-    // FIX: Also refresh entry dropdown when leads data loads
-    populateSalesEntryDropdown();
-    applyDashboardFilter();
-    handleSalesOrVisitChange();
-    renderKunjunganTable();
-
+    await fetchMasterData(true); // force refresh
     loading.classList.add("hidden");
     content.classList.remove("hidden");
   } catch (error) {
@@ -2623,11 +2749,19 @@ function filterMyLeadsTable() { renderMyLeadsTable(); }
 // ============================================================================
 // SKIP / TUNDA VISIT
 // ============================================================================
-async function fetchSkipData() {
+async function fetchSkipData(force) {
+  if (!force && skipDataCache.length > 0) {
+    renderSkipActiveTable();
+    if (rawData.length > 0) applyDashboardFilter();
+    return;
+  }
   try {
     const res = await fetch(`${WEB_APP_URL}?action=getSkipData&_t=${new Date().getTime()}`);
     const result = await res.json();
     skipDataCache = (result && result.success && Array.isArray(result.data)) ? result.data : [];
+    // Update cache
+    var cached = sessionStorage.getItem(MASTER_CACHE_KEY);
+    if (cached) { var c = JSON.parse(cached); c.skip = skipDataCache; saveToCache(c); }
   } catch (e) {
     console.error("Gagal memuat data penundaan:", e);
     skipDataCache = [];
@@ -3154,11 +3288,17 @@ async function ambilAlihLead(shopName, oldSales, newSales) {
   }
 }
 
-async function fetchKunjunganData() {
+async function fetchKunjunganData(force) {
+  if (!force && kunjunganCache.length > 0) {
+    renderKunjunganTable();
+    return;
+  }
   try {
     const res = await fetch(`${WEB_APP_URL}?action=getKunjunganData&_t=${new Date().getTime()}`);
     const result = await res.json();
     kunjunganCache = (result && result.success && Array.isArray(result.data)) ? result.data : [];
+    var cached = sessionStorage.getItem(MASTER_CACHE_KEY);
+    if (cached) { var c = JSON.parse(cached); c.kunjungan = kunjunganCache; saveToCache(c); }
   } catch (e) {
     console.error("Gagal memuat jadwal kunjungan:", e);
     kunjunganCache = [];
@@ -3830,22 +3970,18 @@ function processImageFile(event) {
     return;
   }
 
-  // Google Sheets hard-limits a single cell to 50,000 characters.
-  // We compress/resize the photo client-side so the base64 string always stays safely under that.
-  const SAFE_CHAR_LIMIT = 45000;
-
   if (statusBox) {
     statusBox.classList.remove("hidden");
-    statusText.innerText = "Memproses & mengompres foto...";
+    statusText.innerText = "Mengompres & mengupload foto ke cloud...";
   }
 
   const reader = new FileReader();
   reader.onload = function(e) {
     const img = new Image();
-    img.onload = function() {
-      let width = img.width;
-      let height = img.height;
-      const MAX_DIM = 1000;
+    img.onload = async function() {
+      // Kompres ke max 800px & quality 0.6 (target <100KB)
+      let width = img.width, height = img.height;
+      const MAX_DIM = 800;
       if (width > MAX_DIM || height > MAX_DIM) {
         if (width >= height) { height = Math.round(height * (MAX_DIM / width)); width = MAX_DIM; }
         else { width = Math.round(width * (MAX_DIM / height)); height = MAX_DIM; }
@@ -3856,38 +3992,45 @@ function processImageFile(event) {
       canvas.width = width; canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
 
-      let quality = 0.7;
-      let dataUrl = canvas.toDataURL("image/jpeg", quality);
-
-      // Step down quality first
-      while (dataUrl.length > SAFE_CHAR_LIMIT && quality > 0.15) {
-        quality -= 0.1;
-        dataUrl = canvas.toDataURL("image/jpeg", quality);
-      }
-      // If still too big, shrink dimensions and try again
-      let guard = 0;
-      while (dataUrl.length > SAFE_CHAR_LIMIT && width > 150 && guard < 12) {
-        width = Math.round(width * 0.85);
-        height = Math.round(height * 0.85);
-        canvas.width = width; canvas.height = height;
-        ctx.clearRect(0, 0, width, height);
-        ctx.drawImage(img, 0, 0, width, height);
-        dataUrl = canvas.toDataURL("image/jpeg", quality);
-        guard++;
+      let dataUrl = canvas.toDataURL("image/jpeg", 0.6);
+      // Pastikan <150KB
+      let q = 0.5;
+      while (dataUrl.length > 200000 && q > 0.2) {
+        dataUrl = canvas.toDataURL("image/jpeg", q);
+        q -= 0.1;
       }
 
-      if (dataUrl.length > SAFE_CHAR_LIMIT) {
-        base64Input.value = "";
-        if (statusBox) { statusBox.classList.add("hidden"); }
-        showToast("Foto terlalu kompleks untuk dikompres, coba foto lain.", "error");
-        return;
-      }
+      // Upload ke Drive via GAS (offload dari sheet)
+      try {
+        const payload = {
+          tipeDataForm: "upload_image",
+          base64Image: dataUrl,
+          fileName: "menu_" + Date.now() + ".jpg",
+          mimeType: "image/jpeg"
+        };
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
 
-      base64Input.value = dataUrl;
-      const approxKB = Math.round((dataUrl.length * 0.75) / 1024);
-      if (statusBox) {
+        if (result.success && result.directUrl) {
+          base64Input.value = result.directUrl; // Simpan URL, bukan base64
+          previewImg.src = result.directUrl;
+          statusText.innerHTML = `<i class="fa-solid fa-cloud text-moss-500 mr-1"></i> Foto tersimpan di cloud`;
+        } else {
+          // Fallback: simpan base64 (jika Drive gagal)
+          base64Input.value = dataUrl;
+          previewImg.src = dataUrl;
+          const approxKB = Math.round((dataUrl.length * 0.75) / 1024);
+          statusText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-honey-500 mr-1"></i> Upload cloud gagal, menggunakan lokal (~${approxKB}KB)`;
+        }
+      } catch (uploadErr) {
+        console.error("Upload error:", uploadErr);
+        base64Input.value = dataUrl;
         previewImg.src = dataUrl;
-        statusText.innerHTML = `<i class="fa-solid fa-circle-check text-moss-500 mr-1"></i> Foto siap dikirim (~${approxKB}KB, dikompres otomatis)`;
+        statusText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-honey-500 mr-1"></i> Upload gagal, menyimpan lokal`;
       }
     };
     img.onerror = function() {
@@ -3908,12 +4051,15 @@ function processImageFile(event) {
 // ============================================================================
 let BARANG_LIST = []; // cache: [{nama_barang, total_jumlah}]
 
-async function fetchBarangData() {
+async function fetchBarangData(force) {
+  if (!force && BARANG_LIST.length > 0) return;
   try {
     const res = await fetch(`${WEB_APP_URL}?action=getBarangData&_t=${new Date().getTime()}`, { method: "GET", redirect: "follow" });
     const result = await res.json();
     if (result.success && Array.isArray(result.data)) {
       BARANG_LIST = result.data;
+      var cached = sessionStorage.getItem(MASTER_CACHE_KEY);
+      if (cached) { var c = JSON.parse(cached); c.barang = BARANG_LIST; saveToCache(c); }
     } else {
       console.warn("getBarangData gagal:", result.message);
       BARANG_LIST = [];
@@ -3997,19 +4143,12 @@ function toggleBahanLainnya() {
 }
 
 function toggleClosingFields() {
-  // DIUBAH (2026-09-02, per instruksi user): SEBELUMNYA wrapper ini berisi
-  // input Jumlah (Kg) & Harga yang WAJIB diisi manual di form ini --
-  // SEKARANG diarahkan ke Purchase Order (QSystem) supaya (a) tidak
-  // dobel-catat di dua tempat, dan (b) datanya lebih lengkap (nama
-  // barang, cek stok, rekomendasi produksi, status pengiriman -- yang
-  // semuanya TIDAK ADA di form sederhana ini). Elemen id="jumlah"/
-  // id="harga" SUDAH DIHAPUS dari HTML, jadi TIDAK ADA LAGI field wajib
-  // yang perlu di-toggle required/value-nya di sini -- cuma tampilkan/
-  // sembunyikan pesan+tombol redirect saja.
   const closingVal = document.getElementById("closing").value;
   const wrapper = document.getElementById("closing_data_wrapper");
-  if (closingVal === "Closing") { wrapper.classList.remove("hidden"); }
-  else { wrapper.classList.add("hidden"); }
+  const jumlah = document.getElementById("jumlah");
+  const harga = document.getElementById("harga");
+  if (closingVal === "Closing") { wrapper.classList.remove("hidden"); jumlah.required = true; harga.required = true; }
+  else { wrapper.classList.add("hidden"); jumlah.required = false; harga.required = false; jumlah.value = ""; harga.value = ""; }
 }
 
 async function handleSubmit(event) {
