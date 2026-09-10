@@ -1006,17 +1006,6 @@
                 </div>
               </div>
 
-              <div>
-                <label class="label-field">Foto Menu Coffee Shop</label>
-                <input type="file" id="foto_menu" accept="image/*" onchange="processImageFile(event)" class="input-field text-xs">
-                <input type="hidden" id="foto_menu_base64" name="Foto Menu">
-                <div id="fotoMenuStatus" class="hidden mt-2 flex items-center gap-3 p-2 bg-porcelain-200 border border-porcelain-400 rounded-lg">
-                  <img id="fotoMenuPreview" src="" alt="Preview foto menu" class="w-12 h-12 rounded-md object-cover border border-porcelain-400 shrink-0">
-                  <p id="fotoMenuStatusText" class="text-[10px] text-ink-400 leading-snug"></p>
-                </div>
-                <p class="text-[10px] text-ink-400 mt-1">Unggah berkas gambar menu atau foto langsung dari kamera.</p>
-              </div>
-
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label class="label-field">Nama PIC Toko</label>
@@ -3932,7 +3921,7 @@ function toggleConditionalFields() {
   const firstSection = document.getElementById("visit_pertama_section");
   const alasan2 = document.getElementById("alasan_visit_2_wrapper");
   const alasan3 = document.getElementById("alasan_visit_3_wrapper");
-  const fields = ["area", "jumlah_kursi", "foto_menu", "nama_pic", "telp_pic", "bahan_espresso", "total_kopi"];
+  const fields = ["area", "jumlah_kursi", "nama_pic", "telp_pic", "bahan_espresso", "total_kopi"];
 
   if (visit === "Pertama") {
     firstSection.classList.remove("hidden");
@@ -3957,94 +3946,8 @@ function toggleConditionalFields() {
   }
 }
 
-function processImageFile(event) {
-  const file = event.target.files[0];
-  const base64Input = document.getElementById("foto_menu_base64");
-  const statusBox = document.getElementById("fotoMenuStatus");
-  const statusText = document.getElementById("fotoMenuStatusText");
-  const previewImg = document.getElementById("fotoMenuPreview");
-
-  if (!file) {
-    base64Input.value = "";
-    if (statusBox) statusBox.classList.add("hidden");
-    return;
-  }
-
-  if (statusBox) {
-    statusBox.classList.remove("hidden");
-    statusText.innerText = "Mengompres & mengupload foto ke cloud...";
-  }
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = async function() {
-      // Kompres ke max 800px & quality 0.6 (target <100KB)
-      let width = img.width, height = img.height;
-      const MAX_DIM = 800;
-      if (width > MAX_DIM || height > MAX_DIM) {
-        if (width >= height) { height = Math.round(height * (MAX_DIM / width)); width = MAX_DIM; }
-        else { width = Math.round(width * (MAX_DIM / height)); height = MAX_DIM; }
-      }
-
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = width; canvas.height = height;
-      ctx.drawImage(img, 0, 0, width, height);
-
-      let dataUrl = canvas.toDataURL("image/jpeg", 0.6);
-      // Pastikan <150KB
-      let q = 0.5;
-      while (dataUrl.length > 200000 && q > 0.2) {
-        dataUrl = canvas.toDataURL("image/jpeg", q);
-        q -= 0.1;
-      }
-
-      // Upload ke Drive via GAS (offload dari sheet)
-      try {
-        const payload = {
-          tipeDataForm: "upload_image",
-          base64Image: dataUrl,
-          fileName: "menu_" + Date.now() + ".jpg",
-          mimeType: "image/jpeg"
-        };
-        const res = await fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify(payload)
-        });
-        const result = await res.json();
-
-        if (result.success && result.directUrl) {
-          base64Input.value = result.directUrl; // Simpan URL, bukan base64
-          previewImg.src = result.directUrl;
-          statusText.innerHTML = `<i class="fa-solid fa-cloud text-moss-500 mr-1"></i> Foto tersimpan di cloud`;
-        } else {
-          // Fallback: simpan base64 (jika Drive gagal)
-          base64Input.value = dataUrl;
-          previewImg.src = dataUrl;
-          const approxKB = Math.round((dataUrl.length * 0.75) / 1024);
-          statusText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-honey-500 mr-1"></i> Upload cloud gagal, menggunakan lokal (~${approxKB}KB)`;
-        }
-      } catch (uploadErr) {
-        console.error("Upload error:", uploadErr);
-        base64Input.value = dataUrl;
-        previewImg.src = dataUrl;
-        statusText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-honey-500 mr-1"></i> Upload gagal, menyimpan lokal`;
-      }
-    };
-    img.onerror = function() {
-      base64Input.value = "";
-      if (statusBox) statusBox.classList.add("hidden");
-      showToast("Gagal memproses foto, coba file lain.", "error");
-    };
-    img.src = e.target.result;
-  };
-  reader.onerror = function() {
-    showToast("Gagal membaca file foto.", "error");
-  };
-  reader.readAsDataURL(file);
-}
+// DIHAPUS (2026-09-10, per keputusan user): fungsi processImageFile()
+// sudah tidak dipakai lagi -- fitur "Upload Menu" ditiadakan.
 
 // ============================================================================
 // SAMPLING — Daftar barang dinamis (dropdown dari sheet Penjualan_app)
@@ -4194,8 +4097,6 @@ async function handleSubmit(event) {
     if (result.success) {
       showToast("Laporan kunjungan berhasil terkirim!", "success");
       form.reset();
-      const fotoStatusBox = document.getElementById("fotoMenuStatus");
-      if (fotoStatusBox) fotoStatusBox.classList.add("hidden");
       document.getElementById("id_field").value = generateUniqueID();
       document.getElementById("checkin_field").value = new Date().toLocaleString('id-ID');
       const today = new Date().toISOString().split('T')[0];
