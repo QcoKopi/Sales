@@ -1479,6 +1479,17 @@ const tabLoaded = {};
 function ensureTabData(tab) {
   // Data master sudah di-load saat login, jadi kebanyakan tab sudah siap.
   // Hanya tab yang butuh refresh real-time (sebaran peta) yang perlu re-render.
+  // FIX BUG NYATA (2026-09-11): SEBELUMNYA tab 'dashboard' TIDAK ADA
+  // penanganan sama sekali di sini -- padahal #loadingState/#dashboardContent
+  // HANYA di-toggle oleh fetchLeadsData(), yang TIDAK PERNAH dipanggil di
+  // alur login (enterMainApplication() panggil fetchMasterData() LANGSUNG,
+  // BUKAN fetchLeadsData()). Akibatnya: begitu user login DAN tab default-nya
+  // 'dashboard' (Admin), data BERHASIL dimuat di latar belakang (konsol
+  // menunjukkan "[QCache] Master data fetched from GAS"), TAPI spinner
+  // "Menyeduh data dari Google Sheets..." TIDAK PERNAH disembunyikan --
+  // PERSIS gejala yang dilaporkan: data sukses dimuat, tapi tampilan tetap
+  // macet di spinner selamanya.
+  if (tab === 'dashboard') fetchLeadsData();
   if (tab === 'sebaran') { initMap(); renderMapMarkers(); refreshMapSize(); renderAreaAnalysis(); }
   if (tab === 'prospek') renderProspekTab();
   if (tab === 'performance') renderPerformanceTab();
